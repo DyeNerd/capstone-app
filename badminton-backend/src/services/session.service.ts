@@ -24,13 +24,22 @@ interface SessionStats {
   averageVelocity: number;
 }
 
+interface SessionListFilters {
+  athleteId?: string;
+  status?: SessionStatus;
+  startDate?: Date;
+  endDate?: Date;
+  page?: number;
+  limit?: number;
+}
+
 class SessionService {
   private sessionRepository = AppDataSource.getRepository(TrainingSession);
 
   async createSession(data: CreateSessionData) {
     const session = this.sessionRepository.create({
-      athlete: { id: data.athleteId } as any,
-      coach: { id: data.coachId } as any,
+      athlete: { id: data.athleteId },
+      coach: { id: data.coachId },
       start_time: data.startTime,
       status: data.status,
       target_zone: data.targetZone,
@@ -52,7 +61,7 @@ class SessionService {
     return session;
   }
 
-  async listSessions(filters: any = {}) {
+  async listSessions(filters: SessionListFilters = {}) {
     const { athleteId, status, startDate, endDate, page = 1, limit = 20 } = filters;
 
     const queryBuilder = this.sessionRepository

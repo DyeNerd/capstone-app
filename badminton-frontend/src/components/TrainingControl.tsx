@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Box, Typography } from '@mui/material';
 import { useTraining } from '../context/TrainingContext';
 import { useNavigate } from 'react-router-dom';
+import { TrainingSession, ShotData } from '../types';
 import CourtVisualization from './CourtVisualization';
 import AthleteSelector from './training/AthleteSelector';
 import TrainingControls from './training/TrainingControls';
@@ -38,7 +39,7 @@ const TrainingControl: React.FC = () => {
 
   // Local state for save dialog
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
-  const [sessionToSave, setSessionToSave] = useState<any>(null);
+  const [sessionToSave, setSessionToSave] = useState<TrainingSession | null>(null);
   const [fetchingLatestData, setFetchingLatestData] = useState(false);
 
   // Load athletes on mount
@@ -68,7 +69,7 @@ const TrainingControl: React.FC = () => {
   const handleStartTraining = useCallback(async () => {
     try {
       await startTraining();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to start training:', err);
       // Error handled in TrainingControls component
     }
@@ -104,7 +105,7 @@ const TrainingControl: React.FC = () => {
             setFetchingLatestData(false);
           });
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error stopping training:', err);
       setSessionToSave(currentSession);
       setSaveDialogOpen(true);
@@ -132,7 +133,7 @@ const TrainingControl: React.FC = () => {
 
         // Navigate to performance page
         setTimeout(() => navigate('/performance'), 500);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Save session error:', err);
         throw err; // Re-throw for dialog error handling
       }
@@ -212,7 +213,7 @@ const TrainingControl: React.FC = () => {
  */
 const CourtVisualizationCard = React.memo<{
   isTrainingActive: boolean;
-  liveCourtData: any;
+  liveCourtData: ShotData | null;
   courtDimensions: { width: number; height: number };
 }>(
   ({ isTrainingActive, liveCourtData, courtDimensions }) => {

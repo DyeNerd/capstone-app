@@ -7,8 +7,8 @@ import { socketHandler } from '../websocket/socket.handler';
 import { calculateAccuracy, determineCourtZone, calculateAccuracyPercent } from '../utils/court.utils';
 
 class BrokerService {
-  private connection: any = null;
-  private channel: any = null;
+  private connection: amqp.Connection | null = null;
+  private channel: amqp.Channel | null = null;
 
   // OPTIMIZATION: Debounce stats broadcasts to reduce WebSocket overhead
   private pendingStatsBroadcasts: Map<string, { timeout: NodeJS.Timeout; sessionId: string }> = new Map();
@@ -84,7 +84,7 @@ class BrokerService {
 
     this.channel.consume(
       BROKER_CONFIG.queues.shotData,
-      async (msg: any) => {
+      async (msg: amqp.ConsumeMessage | null) => {
         if (msg) {
           try {
             const shotData: ShotDataFromCV = JSON.parse(msg.content.toString());
