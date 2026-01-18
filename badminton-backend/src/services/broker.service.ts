@@ -10,6 +10,10 @@ class BrokerService {
   private connection: any = null;
   private channel: any = null;
 
+  // OPTIMIZATION: Debounce stats broadcasts to reduce WebSocket overhead
+  private pendingStatsBroadcasts: Map<string, { timeout: NodeJS.Timeout; sessionId: string }> = new Map();
+  private readonly STATS_BROADCAST_DEBOUNCE_MS = 500; // Max 2 broadcasts/second
+
   async initialize() {
     try {
       this.connection = await amqp.connect(BROKER_CONFIG.url);
@@ -69,6 +73,9 @@ class BrokerService {
       persistent: true,
     });
 
+    // OPTIMIZATION: Clear any pending stats broadcasts for this session
+    this.cancelPendingStatsBroadcast(data.sessionId);
+
     console.log(`[BROKER] Published session stop: ${data.sessionId}`);
   }
 
@@ -104,6 +111,7 @@ class BrokerService {
     const accuracyCm = calculateAccuracy(targetPosition, landingPosition);
     const accuracyPercent = calculateAccuracyPercent(accuracyCm);
     const courtZone = determineCourtZone(landingPosition);
+    const wasSuccessful = accuracyCm < 30;
 
     // Save shot to database
     const shot = await shotService.createShot({
@@ -118,23 +126,68 @@ class BrokerService {
       accuracyPercent,
       velocityKmh: velocity,
       detectionConfidence,
-      wasSuccessful: accuracyCm < 30,
+      wasSuccessful,
       courtZone,
     });
 
-    // Update session statistics
-    const updatedSession = await sessionService.updateSessionStats(sessionId);
+    // OPTIMIZATION 1: Incremental stats update (O(1) vs O(n))
+    const updatedSession = await sessionService.incrementalUpdateStats(
+      sessionId,
+      accuracyPercent,
+      velocity,
+      wasSuccessful
+    );
 
-    // Broadcast shot data to WebSocket clients
+    // OPTIMIZATION 2: Immediate shot broadcast (real-time UX)
     socketHandler.emitShotData(sessionId, shot);
-    
-    // Broadcast updated session stats to WebSocket clients
-    socketHandler.emitSessionStats(sessionId, {
-      total_shots: updatedSession.total_shots,
-      successful_shots: updatedSession.successful_shots,
-      average_accuracy_percent: updatedSession.average_accuracy_percent,
-      average_shot_velocity_kmh: updatedSession.average_shot_velocity_kmh,
+
+    // OPTIMIZATION 3: Debounced stats broadcast (reduce WebSocket overhead)
+    this.scheduleDebouncedStatsBroadcast(sessionId, {
+      total_shots: updatedSession.total_shots || 0,
+      successful_shots: updatedSession.successful_shots || 0,
+      average_accuracy_percent: Number(updatedSession.average_accuracy_percent || 0),
+      average_shot_velocity_kmh: Number(updatedSession.average_shot_velocity_kmh || 0),
     });
+  }
+
+  /**
+   * OPTIMIZATION: Debounce stats broadcasts to max 2/second
+   * Reduces WebSocket overhead while maintaining near real-time updates
+   */
+  private scheduleDebouncedStatsBroadcast(
+    sessionId: string,
+    stats: {
+      total_shots: number;
+      successful_shots: number;
+      average_accuracy_percent: number;
+      average_shot_velocity_kmh: number;
+    }
+  ): void {
+    // Cancel existing pending broadcast
+    const existing = this.pendingStatsBroadcasts.get(sessionId);
+    if (existing) {
+      clearTimeout(existing.timeout);
+    }
+
+    // Schedule new broadcast
+    const timeout = setTimeout(() => {
+      socketHandler.emitSessionStats(sessionId, stats);
+      this.pendingStatsBroadcasts.delete(sessionId);
+    }, this.STATS_BROADCAST_DEBOUNCE_MS);
+
+    this.pendingStatsBroadcasts.set(sessionId, { timeout, sessionId });
+  }
+
+  /**
+   * Cancel pending stats broadcast for a session
+   * Called when session stops to clean up resources
+   */
+  private cancelPendingStatsBroadcast(sessionId: string): void {
+    const pending = this.pendingStatsBroadcasts.get(sessionId);
+    if (pending) {
+      clearTimeout(pending.timeout);
+      this.pendingStatsBroadcasts.delete(sessionId);
+    }
   }
 }
 

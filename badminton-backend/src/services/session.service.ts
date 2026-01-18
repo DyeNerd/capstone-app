@@ -17,6 +17,13 @@ interface StopSessionData {
   sessionRating?: number;
 }
 
+interface SessionStats {
+  totalShots: number;
+  successfulShots: number;
+  averageAccuracy: number;
+  averageVelocity: number;
+}
+
 class SessionService {
   private sessionRepository = AppDataSource.getRepository(TrainingSession);
 
@@ -103,20 +110,54 @@ class SessionService {
       return session;
     }
 
-    // Calculate statistics (convert Decimal types to numbers)
-    const totalShots = session.shots.length;
-    const successfulShots = session.shots.filter((s) => s.was_successful).length;
-    
-    // Convert accuracy_percent and velocity_kmh to numbers before summing
-    const avgAccuracy =
-      session.shots.reduce((sum, s) => sum + Number(s.accuracy_percent || 0), 0) / totalShots;
-    const avgVelocity =
-      session.shots.reduce((sum, s) => sum + Number(s.velocity_kmh || 0), 0) / totalShots;
+    // OPTIMIZATION: Single-pass calculation using accumulator pattern
+    const stats = session.shots.reduce<SessionStats>(
+      (acc, shot) => {
+        acc.totalShots++;
+        if (shot.was_successful) {
+          acc.successfulShots++;
+        }
+        acc.averageAccuracy += Number(shot.accuracy_percent || 0);
+        acc.averageVelocity += Number(shot.velocity_kmh || 0);
+        return acc;
+      },
+      { totalShots: 0, successfulShots: 0, averageAccuracy: 0, averageVelocity: 0 }
+    );
 
+    const totalShots = stats.totalShots;
     session.total_shots = totalShots;
-    session.successful_shots = successfulShots;
-    session.average_accuracy_percent = avgAccuracy;
-    session.average_shot_velocity_kmh = avgVelocity;
+    session.successful_shots = stats.successfulShots;
+    session.average_accuracy_percent = stats.averageAccuracy / totalShots;
+    session.average_shot_velocity_kmh = stats.averageVelocity / totalShots;
+
+    return await this.sessionRepository.save(session);
+  }
+
+  /**
+   * NEW: Incremental stats update for real-time shot processing
+   * Performance: O(1) constant time vs O(n) full recalc
+   * Uses running average formula: new_avg = (old_avg * old_count + new_value) / new_count
+   */
+  async incrementalUpdateStats(
+    sessionId: string,
+    newShotAccuracy: number,
+    newShotVelocity: number,
+    wasSuccessful: boolean
+  ): Promise<TrainingSession> {
+    const session = await this.getSessionById(sessionId, []); // No relations needed
+
+    const oldTotal = session.total_shots || 0;
+    const newTotal = oldTotal + 1;
+
+    const oldAvgAccuracy = Number(session.average_accuracy_percent || 0);
+    const oldAvgVelocity = Number(session.average_shot_velocity_kmh || 0);
+
+    session.total_shots = newTotal;
+    session.successful_shots = (session.successful_shots || 0) + (wasSuccessful ? 1 : 0);
+
+    // Running average: new_avg = (old_avg * old_count + new_value) / new_count
+    session.average_accuracy_percent = (oldAvgAccuracy * oldTotal + newShotAccuracy) / newTotal;
+    session.average_shot_velocity_kmh = (oldAvgVelocity * oldTotal + newShotVelocity) / newTotal;
 
     return await this.sessionRepository.save(session);
   }
