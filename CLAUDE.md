@@ -68,6 +68,15 @@ capstone/
 - **WebSocket:** Socket.IO Client 4.x
 - **Charts:** Chart.js 4.x (installed, ready for use)
 - **Build Tool:** Create React App
+- **Testing:** Jest 29.x + React Testing Library
+
+### Testing
+- **Backend Test Framework:** Jest 29.x with ts-jest
+- **Backend HTTP Testing:** Supertest 7.x
+- **Frontend Testing:** Jest + React Testing Library
+- **Coverage Target:** 70% (lines, branches, functions, statements)
+- **Test Types:** Unit tests, Integration tests, Component tests
+- **Mock Libraries:** Jest mock functions + custom mocks (Database, Redis, RabbitMQ, Socket.IO)
 
 ## Key Features
 
@@ -224,7 +233,37 @@ REACT_APP_SOCKET_URL=http://localhost:5000
 5. **Real-time features:** Use WebSocket events, don't poll
 
 ### Testing
-- **Backend:** Use curl or Postman to test API endpoints
+
+#### Running Tests
+```bash
+# Backend tests
+cd badminton-backend
+npm test                    # Run all tests
+npm test -- --coverage      # Run with coverage
+npm test -- --watch         # Watch mode for development
+
+# Frontend tests
+cd badminton-frontend
+npm test                                      # Run all tests
+npm test -- --coverage --watchAll=false       # Run with coverage
+```
+
+#### Test Structure
+- **Unit Tests:** `src/__tests__/unit/` - Services, middleware tests
+- **Integration Tests:** `src/__tests__/integration/` - Full API endpoint tests
+- **Mocks:** `src/__tests__/mocks/` - Database, Redis, RabbitMQ, Socket.IO mocks
+- **Coverage Target:** 70% for lines, branches, functions, statements
+- **Test Files:** 70+ test cases across 8 backend test files, 1 frontend test file
+
+#### Writing Tests
+- Use Jest mock functions for dependencies
+- Mock TypeORM repositories with `createMockRepository<Entity>()`
+- Mock Redis with `mockRedisClient` from `redis.mock.ts`
+- Mock RabbitMQ with `mockRabbitMQ` from `rabbitmq.mock.ts`
+- Mock Socket.IO with `mockSocketServer` from `socket.mock.ts`
+
+#### Manual Testing
+- **Backend API:** Use curl or Postman to test API endpoints
 - **Frontend:** Use browser DevTools console to check WebSocket events
 - **RabbitMQ:** Use management UI at http://localhost:15672 to inspect messages
 - **Database:** Use `docker exec -it badminton_postgres psql -U badminton_user -d badminton_training`
@@ -284,6 +323,13 @@ REACT_APP_SOCKET_URL=http://localhost:5000
 - Reset: `docker-compose down -v && docker-compose up -d` (WARNING: deletes all data)
 - Connect: `docker exec -it badminton_postgres psql -U badminton_user -d badminton_training`
 
+### Tests failing
+- Check test output for specific errors
+- Verify all dependencies installed: `npm install`
+- Clear Jest cache: `npm test -- --clearCache`
+- Check TypeScript compilation: `npx tsc --noEmit`
+- See `docs/TESTING_GUIDE.md` for troubleshooting
+
 ## Documentation Files
 
 All detailed documentation is in the `docs/` directory:
@@ -292,8 +338,12 @@ All detailed documentation is in the `docs/` directory:
 - `GETTING_STARTED.md` - Quick start guide
 - `DEMO_GUIDE.md` - Demo walkthrough
 - `MOCK_CV_SETUP.md` - Mock CV component setup
+- `TESTING_GUIDE.md` - Comprehensive testing guide (300+ lines)
 - `badminton-backend/README.md` - Backend-specific docs
+- `badminton-backend/TEST_README.md` - Backend testing quick start
 - `badminton-frontend/README.md` - Frontend-specific docs
+- `TEST_IMPLEMENTATION_SUMMARY.md` - Test implementation overview
+- `TEST_RESULTS_SUMMARY.md` - Test execution results
 
 ## Quick Reference
 
@@ -405,8 +455,9 @@ Quick Start (30 minutes for 99.6% backend gain):
 
 ---
 
-**Last Updated:** 2025-01-18
+**Last Updated:** 2026-01-18
 **Project Status:** Production-ready, fully functional, performance-optimized
 **Backend Status:** 100% Complete + Optimized (99.6% performance gain implemented)
 **Frontend Status:** 100% Complete + Optimized (70% fewer renders implemented)
+**Testing Status:** 70+ tests implemented (16 passing, known TypeScript setup issues documented)
 **Type Safety:** All `any` types removed, full TypeScript compliance
