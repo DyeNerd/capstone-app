@@ -9,7 +9,7 @@ import { RallyEvent } from '../models/RallyEvent';
 export const AppDataSource = new DataSource({
   type: 'postgres',
   url: process.env.DATABASE_URL || 'postgresql://badminton_user:badminton_pass@localhost:5432/badminton_training',
-  synchronize: process.env.NODE_ENV === 'development',
+  synchronize: process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test',
   logging: process.env.NODE_ENV === 'development',
   entities: [User, Athlete, TrainingSession, Shot, Rally, RallyEvent],
   migrations: [],

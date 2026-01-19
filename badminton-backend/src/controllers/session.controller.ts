@@ -93,6 +93,21 @@ export class SessionController {
       res.status(500).json({ error: error.message });
     }
   }
+
+  async deleteSession(req: AuthRequest, res: Response) {
+    try {
+      const { sessionId } = req.params;
+
+      await sessionService.deleteSession(sessionId);
+
+      res.status(200).json({
+        success: true,
+        message: 'Session deleted successfully',
+      });
+    } catch (error: any) {
+      res.status(404).json({ error: error.message });
+    }
+  }
 }
 
 export const sessionController = new SessionController();

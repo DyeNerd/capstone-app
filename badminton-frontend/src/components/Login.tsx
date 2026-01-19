@@ -27,10 +27,15 @@ const Login: React.FC = () => {
     setError('');
     setIsLoading(true);
 
+    console.log('[Login] Form submitted', { email, password: '***' });
+
     try {
+      console.log('[Login] Calling login API...');
       await login(email, password);
+      console.log('[Login] Login successful, navigating to /');
       navigate('/');
     } catch (err: any) {
+      console.error('[Login] Login failed:', err);
       setError(err.message || 'Login failed');
     } finally {
       setIsLoading(false);
@@ -69,6 +74,7 @@ const Login: React.FC = () => {
               <TextField
                 fullWidth
                 label="Email"
+                name="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -80,6 +86,7 @@ const Login: React.FC = () => {
               <TextField
                 fullWidth
                 label="Password"
+                name="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

@@ -1,0 +1,77 @@
+name: E2E Tests
+
+on:
+  workflow_dispatch:  # Manual trigger only
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: |
+            badminton-backend/package-lock.json
+            badminton-frontend/package-lock.json
+            e2e/package-lock.json
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install Python dependencies
+        run: |
+          pip install pika
+
+      - name: Install backend dependencies
+        working-directory: badminton-backend
+        run: npm ci
+
+      - name: Install frontend dependencies
+        working-directory: badminton-frontend
+        run: npm ci
+
+      - name: Install E2E test dependencies
+        working-directory: e2e
+        run: |
+          npm ci
+          npx playwright install chromium
+          npx playwright install-deps
+
+      - name: Run E2E tests
+        working-directory: e2e
+        run: npm test
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: playwright-report
+          path: e2e/playwright-report/
+          retention-days: 30
+
+      - name: Upload video recordings
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-videos
+          path: e2e/test-results/
+          retention-days: 7
+
+      - name: Upload test logs
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-logs
+          path: |
+            e2e/**/*.log
+            badminton-backend/**/*.log
+          retention-days: 7

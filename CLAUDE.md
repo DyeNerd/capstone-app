@@ -45,6 +45,15 @@ capstone/
 │   └── public/                 # Static assets
 │
 ├── docs/                       # Documentation (all .md files)
+│   └── refactoring-reference/  # Archived refactored files for reference
+├── e2e/                        # End-to-end tests (Playwright)
+│   ├── tests/                  # E2E test specifications
+│   ├── helpers/                # Test utilities (auth, docker, websocket, API)
+│   ├── fixtures/               # Test data (users, athletes)
+│   ├── setup/                  # Global setup/teardown
+│   ├── playwright.config.ts    # Playwright configuration
+│   └── docker-compose.test.yml # Isolated test environment
+├── .github/workflows/          # GitHub Actions CI/CD
 ├── deprecated/                 # Old project files
 └── CLAUDE.md                   # This file
 ```
@@ -74,9 +83,11 @@ capstone/
 - **Backend Test Framework:** Jest 29.x with ts-jest
 - **Backend HTTP Testing:** Supertest 7.x
 - **Frontend Testing:** Jest + React Testing Library
+- **E2E Testing:** Playwright 1.40.0 with TypeScript
 - **Coverage Target:** 70% (lines, branches, functions, statements)
-- **Test Types:** Unit tests, Integration tests, Component tests
+- **Test Types:** Unit tests, Integration tests, Component tests, E2E tests
 - **Mock Libraries:** Jest mock functions + custom mocks (Database, Redis, RabbitMQ, Socket.IO)
+- **E2E Infrastructure:** Docker Compose isolated environment, Python mock CV component
 
 ## Key Features
 
@@ -263,6 +274,20 @@ npm test -- --coverage --watchAll=false       # Run with coverage
 - **Component Tests:** 4 component test files temporarily skipped (React Router v7 ESM compatibility)
 - **Coverage:** api.ts (100%), AuthContext.tsx (97.77%)
 
+**E2E Tests:**
+- **Framework:** Playwright 1.40.0 with TypeScript
+- **Location:** `e2e/tests/` directory
+- **Test Suites:**
+  - `auth.e2e.spec.ts` - Authentication flows (register, login, logout, token persistence)
+  - `training-session.e2e.spec.ts` - Complete training session workflow (50 shots, real-time updates)
+- **Infrastructure:**
+  - Isolated Docker environment (ports 5001, 5433, 6380, 5673)
+  - Helpers for auth, API, WebSocket, Docker, mock CV
+  - Fixtures for test data (users, athletes)
+  - Global setup/teardown for container management
+- **Mock CV:** Python script with configurable shot count and interval (e.g., 50 shots @ 50ms)
+- **CI/CD:** Manual trigger GitHub Actions workflow (`.github/workflows/e2e-tests.yml`)
+
 **Coverage Target:** 70% for lines, branches, functions, statements
 
 #### Writing Tests
@@ -349,10 +374,12 @@ All detailed documentation is in the `docs/` directory:
 - `DEMO_GUIDE.md` - Demo walkthrough
 - `MOCK_CV_SETUP.md` - Mock CV component setup
 - `TESTING_COMPLETE.md` - Complete testing guide (consolidated, 100% pass rate)
+- `E2E_TESTING.md` - End-to-end testing guide with Playwright
 - `REFACTORING_SUMMARY.md` - Performance optimization details (99.6% improvement)
 - `IMPLEMENTATION_GUIDE.md` - Deployment instructions for optimizations
 - `BACKEND_README.md` - Backend-specific documentation
 - `FRONTEND_README.md` - Frontend-specific documentation
+- `refactoring-reference/` - Archived refactored files for reference
 
 ## Quick Reference
 
@@ -385,17 +412,17 @@ docker exec -it badminton_postgres psql -U badminton_user -d badminton_training
 
 ## Performance Optimizations (Added 2025-01-18)
 
-### Refactored Files Available
+### Refactored Files Reference
 
-The project includes optimized versions of performance-critical files with `.REFACTORED` suffix:
+The project includes optimized versions of performance-critical files archived in `docs/refactoring-reference/`:
 
-**Backend Optimizations:**
-- `badminton-backend/src/services/session.service.REFACTORED.ts`
+**Backend Optimizations (reference files):**
+- `docs/refactoring-reference/session.service.REFACTORED.ts`
   - O(4n) → O(n) single-pass aggregation (75% fewer iterations)
   - New `incrementalUpdateStats()` method for O(1) real-time updates
   - Proper TypeScript interfaces (SessionStats, SessionListFilters)
 
-- `badminton-backend/src/services/broker.service.REFACTORED.ts`
+- `docs/refactoring-reference/broker.service.REFACTORED.ts`
   - O(n²) → O(1) incremental stats calculation (99.6% performance gain)
   - WebSocket broadcast debouncing (500ms, max 2/second)
   - Proper cleanup methods and graceful shutdown
@@ -405,13 +432,13 @@ The project includes optimized versions of performance-critical files with `.REF
   - 9 indexes added: athlete_id, coach_id, session_id, status, timestamps
   - Safe to run with `IF NOT EXISTS` checks
 
-**Frontend Optimizations:**
-- `badminton-frontend/src/components/TrainingControl.REFACTORED.tsx`
+**Frontend Optimizations (reference files):**
+- `docs/refactoring-reference/TrainingControl.REFACTORED.tsx`
   - Decomposed from 490 lines → 150 lines + 4 sub-components
   - React.memo, useMemo, useCallback throughout
   - 70% reduction in render cost
 
-- `badminton-frontend/src/components/CourtVisualization.REFACTORED.tsx`
+- `docs/refactoring-reference/CourtVisualization.REFACTORED.tsx`
   - React.memo with custom comparison
   - Memoized static SVG court lines
   - 60% reduction in SVG rendering cost
@@ -464,9 +491,10 @@ Quick Start (30 minutes for 99.6% backend gain):
 
 ---
 
-**Last Updated:** 2026-01-18
+**Last Updated:** 2026-01-19
 **Project Status:** Production-ready, fully functional, performance-optimized
 **Backend Status:** 100% Complete + Optimized (99.6% performance gain implemented)
 **Frontend Status:** 100% Complete + Optimized (70% fewer renders implemented)
-**Testing Status:** 96 tests implemented (71 backend + 25 frontend, 100% pass rate)
+**Testing Status:** 96 tests implemented (71 backend + 25 frontend, 100% pass rate) + E2E suite with Playwright
+**E2E Testing:** Complete end-to-end test infrastructure with Docker isolation and mock CV component
 **Type Safety:** All `any` types removed, full TypeScript compliance

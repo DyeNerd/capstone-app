@@ -11,6 +11,7 @@ router.post('/start', sessionController.startSession.bind(sessionController));
 router.post('/:sessionId/stop', sessionController.stopSession.bind(sessionController));
 router.get('/', sessionController.listSessions.bind(sessionController));
 router.get('/:sessionId', sessionController.getSession.bind(sessionController));
+router.delete('/:sessionId', sessionController.deleteSession.bind(sessionController));
 
 export default router;
 

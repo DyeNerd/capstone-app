@@ -43,12 +43,16 @@ const Register: React.FC = () => {
     e.preventDefault();
     setError('');
 
+    console.log('[Register] Form submitted', { email, username, password: '***' });
+
     if (password !== confirmPassword) {
+      console.log('[Register] Password mismatch');
       setError('Passwords do not match');
       return;
     }
 
     if (password.length < 8) {
+      console.log('[Register] Password too short');
       setError('Password must be at least 8 characters');
       return;
     }
@@ -56,9 +60,12 @@ const Register: React.FC = () => {
     setIsLoading(true);
 
     try {
+      console.log('[Register] Calling register API...');
       await register(email, username, password);
+      console.log('[Register] Registration successful, navigating to /');
       navigate('/');
     } catch (err: any) {
+      console.error('[Register] Registration failed:', err);
       setError(err.message || 'Registration failed');
     } finally {
       setIsLoading(false);
@@ -97,6 +104,7 @@ const Register: React.FC = () => {
               <TextField
                 fullWidth
                 label="Username"
+                name="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
@@ -108,6 +116,7 @@ const Register: React.FC = () => {
               <TextField
                 fullWidth
                 label="Email"
+                name="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -118,6 +127,7 @@ const Register: React.FC = () => {
               <TextField
                 fullWidth
                 label="Password"
+                name="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

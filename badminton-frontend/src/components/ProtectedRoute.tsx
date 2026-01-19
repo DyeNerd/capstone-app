@@ -10,7 +10,10 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
 
+  console.log('[ProtectedRoute] Render:', { isAuthenticated, isLoading });
+
   if (isLoading) {
+    console.log('[ProtectedRoute] Showing loading spinner');
     return (
       <Box
         sx={{
@@ -26,9 +29,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }
 
   if (!isAuthenticated) {
+    console.log('[ProtectedRoute] Not authenticated, redirecting to /login');
     return <Navigate to="/login" replace />;
   }
 
+  console.log('[ProtectedRoute] Authenticated, rendering children');
   return children;
 };
 

@@ -1,7 +1,15 @@
 #!/usr/bin/env python3
 """
 Mock CV Component - Simulates Computer Vision System Sending Shot Data
-This script sends 10 mock badminton shot data to RabbitMQ with 3-second intervals.
+This script sends mock badminton shot data to RabbitMQ.
+
+Usage:
+  python mock_cv_component.py <session_id> [--count N] [--interval-ms MS]
+
+Examples:
+  python mock_cv_component.py abc123                           # 10 shots, 3s interval (default)
+  python mock_cv_component.py abc123 --count 50                # 50 shots, 3s interval
+  python mock_cv_component.py abc123 --count 50 --interval-ms 50  # 50 shots, 50ms interval
 """
 
 import pika
@@ -10,12 +18,48 @@ import time
 import random
 from datetime import datetime
 import sys
+import argparse
+import os
 
-# RabbitMQ Configuration
-RABBITMQ_HOST = 'localhost'
-RABBITMQ_PORT = 5672
-RABBITMQ_USER = 'badminton'
-RABBITMQ_PASS = 'badminton123'
+# RabbitMQ Configuration - Use environment variables with defaults
+RABBITMQ_URL = os.environ.get('RABBITMQ_URL', 'amqp://badminton:badminton123@localhost:5672')
+
+# Parse RABBITMQ_URL to extract connection parameters
+# Format: amqp://user:pass@host:port
+def parse_rabbitmq_url(url: str) -> dict:
+    """Parse RabbitMQ URL into connection parameters."""
+    # Remove 'amqp://' prefix
+    url = url.replace('amqp://', '')
+
+    # Split into credentials and host parts
+    if '@' in url:
+        credentials, host_part = url.split('@')
+        user, password = credentials.split(':')
+    else:
+        user = 'badminton'
+        password = 'badminton123'
+        host_part = url
+
+    # Split host and port
+    if ':' in host_part:
+        host, port = host_part.split(':')
+        port = int(port)
+    else:
+        host = host_part
+        port = 5672
+
+    return {
+        'host': host,
+        'port': port,
+        'user': user,
+        'password': password
+    }
+
+rabbitmq_config = parse_rabbitmq_url(RABBITMQ_URL)
+RABBITMQ_HOST = rabbitmq_config['host']
+RABBITMQ_PORT = rabbitmq_config['port']
+RABBITMQ_USER = rabbitmq_config['user']
+RABBITMQ_PASS = rabbitmq_config['password']
 EXCHANGE = 'badminton_training'
 ROUTING_KEY = 'shot.data.mock'
 
@@ -117,9 +161,11 @@ def send_to_rabbitmq(shot_data):
         parameters = pika.ConnectionParameters(
             host=RABBITMQ_HOST,
             port=RABBITMQ_PORT,
-            credentials=credentials
+            credentials=credentials,
+            connection_attempts=3,
+            retry_delay=2
         )
-        
+
         connection = pika.BlockingConnection(parameters)
         channel = connection.channel()
         
@@ -150,58 +196,77 @@ def send_to_rabbitmq(shot_data):
 
 def main():
     """
-    Main function to send 10 mock shots with 3-second intervals.
+    Main function to send mock shots with configurable count and interval.
     """
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser(
+        description='Mock CV Component - Send badminton shot data to RabbitMQ',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  %(prog)s abc123                              # 10 shots, 3s interval (default)
+  %(prog)s abc123 --count 50                   # 50 shots, 3s interval
+  %(prog)s abc123 --count 50 --interval-ms 50  # 50 shots, 50ms interval (fast for E2E tests)
+        """
+    )
+    parser.add_argument('session_id', help='Training session ID to send shots to')
+    parser.add_argument('--count', type=int, default=10,
+                        help='Number of shots to send (default: 10)')
+    parser.add_argument('--interval-ms', type=int, default=3000,
+                        help='Interval between shots in milliseconds (default: 3000)')
+
+    args = parser.parse_args()
+
+    session_id = args.session_id
+    shot_count = args.count
+    interval_seconds = args.interval_ms / 1000.0
+
     print("🏸 Mock CV Component - Badminton Shot Data Generator")
     print("=" * 60)
-    
-    # Get session ID from command line or use default
-    if len(sys.argv) > 1:
-        session_id = sys.argv[1]
-    else:
-        # Default test session ID (you'll need to replace with actual session ID)
-        session_id = input("Enter Session ID (or press Enter for test mode): ").strip()
-        if not session_id:
-            session_id = "test-session-" + datetime.now().strftime("%Y%m%d-%H%M%S")
-            print(f"⚠️  Using test session ID: {session_id}")
-    
-    print(f"\n📋 Session ID: {session_id}")
-    print(f"🎯 Sending 10 shots with 3-second intervals...\n")
-    
-    # Send 10 shots
-    for shot_num in range(1, 11):
+    print(f"📋 Session ID: {session_id}")
+    print(f"🔌 RabbitMQ: {RABBITMQ_HOST}:{RABBITMQ_PORT} (user: {RABBITMQ_USER})")
+    print(f"🎯 Sending {shot_count} shots with {args.interval_ms}ms interval...\n")
+
+    # Send shots
+    for shot_num in range(1, shot_count + 1):
         # Generate shot data
         shot_data = generate_mock_shot(session_id, shot_num)
-        
+
         # Display shot info
         target = shot_data['targetPosition']
         landing = shot_data['landingPosition']
         distance = ((target['x'] - landing['x'])**2 + (target['y'] - landing['y'])**2)**0.5
         distance_cm = distance * 100
-        
+
         print(f"Shot #{shot_num}:")
         print(f"  Target:   ({target['x']:.2f}, {target['y']:.2f})")
         print(f"  Landing:  ({landing['x']:.2f}, {landing['y']:.2f})")
         print(f"  Accuracy: {distance_cm:.1f} cm")
         print(f"  Velocity: {shot_data['velocity']} km/h")
         print(f"  Confidence: {shot_data['detectionConfidence']}")
-        
+
         # Send to RabbitMQ
         if send_to_rabbitmq(shot_data):
             print(f"  ✅ Sent to RabbitMQ")
         else:
             print(f"  ❌ Failed to send")
-        
-        # Wait 3 seconds before next shot (except for last shot)
-        if shot_num < 10:
-            print(f"  ⏳ Waiting 3 seconds...\n")
-            time.sleep(3)
+
+        # Wait before next shot (except for last shot)
+        if shot_num < shot_count:
+            if interval_seconds >= 1:
+                print(f"  ⏳ Waiting {interval_seconds:.1f} seconds...\n")
+            time.sleep(interval_seconds)
         else:
             print()
-    
+
+        # Progress indicator for large counts
+        if shot_count > 20 and shot_num % 10 == 0:
+            print(f"📊 Progress: {shot_num}/{shot_count} shots sent\n")
+
     print("=" * 60)
-    print("✅ All 10 shots sent successfully!")
+    print(f"✅ Successfully sent all {shot_count} shots!")
     print("\n💡 Check your backend logs and frontend to see the shots appear in real-time!")
+    sys.exit(0)
 
 if __name__ == '__main__':
     try:
