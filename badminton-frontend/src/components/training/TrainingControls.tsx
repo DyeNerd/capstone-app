@@ -9,10 +9,12 @@ import {
   Alert,
 } from '@mui/material';
 import { PlayArrow, Stop, SportsTennis } from '@mui/icons-material';
+import { Athlete, TrainingSession, TargetTemplate } from '../../types';
 
 interface TrainingControlsProps {
-  selectedAthlete: any;
-  currentSession: any;
+  selectedAthlete: Athlete | null;
+  selectedTemplate: TargetTemplate | null;
+  currentSession: TrainingSession | null;
   isTrainingActive: boolean;
   onStartTraining: () => Promise<void>;
   onStopTraining: () => Promise<void>;
@@ -30,6 +32,7 @@ interface TrainingControlsProps {
  */
 const TrainingControls: React.FC<TrainingControlsProps> = ({
   selectedAthlete,
+  selectedTemplate,
   currentSession,
   isTrainingActive,
   onStartTraining,
@@ -42,11 +45,16 @@ const TrainingControls: React.FC<TrainingControlsProps> = ({
       setError('Please select an athlete first!');
       return;
     }
+    if (!selectedTemplate) {
+      setError('Please select a template first!');
+      return;
+    }
     try {
       setError('');
       await onStartTraining();
-    } catch (err: any) {
-      setError(err.message || 'Failed to start training');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to start training';
+      setError(errorMessage);
     }
   };
 
@@ -54,8 +62,9 @@ const TrainingControls: React.FC<TrainingControlsProps> = ({
     try {
       setError('');
       await onStopTraining();
-    } catch (err: any) {
-      setError(err.message || 'Failed to stop training');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to stop training';
+      setError(errorMessage);
     }
   };
 
@@ -118,7 +127,7 @@ const TrainingControls: React.FC<TrainingControlsProps> = ({
             fullWidth
             startIcon={<PlayArrow />}
             onClick={handleStart}
-            disabled={!selectedAthlete || isTrainingActive}
+            disabled={!selectedAthlete || !selectedTemplate || isTrainingActive}
             sx={{ py: 2, fontSize: '1.1rem' }}
           >
             START TRAINING
@@ -141,6 +150,12 @@ const TrainingControls: React.FC<TrainingControlsProps> = ({
         {!selectedAthlete && (
           <Alert severity="warning" sx={{ mt: 2 }}>
             Please select an athlete before starting training
+          </Alert>
+        )}
+
+        {selectedAthlete && !selectedTemplate && (
+          <Alert severity="warning" sx={{ mt: 2 }}>
+            Please select a target template before starting training
           </Alert>
         )}
       </CardContent>

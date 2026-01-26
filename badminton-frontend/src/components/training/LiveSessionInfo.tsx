@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Card, CardContent, Typography, Box } from '@mui/material';
-import { Timer } from '@mui/icons-material';
+import { Card, CardContent, Typography, Box, Chip } from '@mui/material';
+import { Timer, CheckCircle, Cancel, GpsFixed } from '@mui/icons-material';
 
 interface LiveSessionInfoProps {
   session: {
@@ -8,6 +8,10 @@ interface LiveSessionInfoProps {
     total_shots: number;
     successful_shots: number;
   };
+  templateName?: string;
+  currentPositionIndex?: number;
+  totalPositions?: number;
+  lastShotInBox?: boolean;
 }
 
 /**
@@ -19,7 +23,13 @@ interface LiveSessionInfoProps {
  *
  * Optimization: Memoized, auto-updating duration
  */
-const LiveSessionInfo: React.FC<LiveSessionInfoProps> = ({ session }) => {
+const LiveSessionInfo: React.FC<LiveSessionInfoProps> = ({
+  session,
+  templateName,
+  currentPositionIndex,
+  totalPositions,
+  lastShotInBox,
+}) => {
   const [, setTick] = useState(0);
 
   // Update duration every minute
@@ -84,6 +94,34 @@ const LiveSessionInfo: React.FC<LiveSessionInfoProps> = ({ session }) => {
             <Typography variant="h6">{successRate}%</Typography>
           </Box>
         </Box>
+
+        {/* Template Position Info */}
+        {templateName && totalPositions !== undefined && (
+          <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+              <GpsFixed fontSize="small" color="primary" />
+              <Typography variant="body2" color="text.secondary">
+                Template: <strong>{templateName}</strong>
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Chip
+                label={`Position ${(currentPositionIndex ?? 0) + 1} of ${totalPositions}`}
+                color="primary"
+                variant="outlined"
+                size="small"
+              />
+              {lastShotInBox !== undefined && (
+                <Chip
+                  icon={lastShotInBox ? <CheckCircle /> : <Cancel />}
+                  label={lastShotInBox ? 'In Box' : 'Outside'}
+                  color={lastShotInBox ? 'success' : 'error'}
+                  size="small"
+                />
+              )}
+            </Box>
+          </Box>
+        )}
       </CardContent>
     </Card>
   );

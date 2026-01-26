@@ -2,12 +2,13 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Box, Typography } from '@mui/material';
 import { useTraining } from '../context/TrainingContext';
 import { useNavigate } from 'react-router-dom';
-import { TrainingSession, ShotData } from '../types';
+import { TrainingSession, ShotData, TargetTemplate } from '../types';
 import CourtVisualization from './CourtVisualization';
 import AthleteSelector from './training/AthleteSelector';
 import TrainingControls from './training/TrainingControls';
 import SessionSaveDialog from './training/SessionSaveDialog';
 import LiveSessionInfo from './training/LiveSessionInfo';
+import TemplateSelector from './training/TemplateSelector';
 
 /**
  * REFACTORED: Main training control component
@@ -28,8 +29,13 @@ const TrainingControl: React.FC = () => {
     currentSession,
     isTrainingActive,
     liveCourtData,
+    templates,
+    selectedTemplate,
+    currentTargetIndex,
     loadAthletes,
     selectAthlete,
+    loadTemplates,
+    selectTemplate,
     startTraining,
     stopTraining,
     saveSession,
@@ -42,10 +48,11 @@ const TrainingControl: React.FC = () => {
   const [sessionToSave, setSessionToSave] = useState<TrainingSession | null>(null);
   const [fetchingLatestData, setFetchingLatestData] = useState(false);
 
-  // Load athletes on mount
+  // Load athletes and templates on mount
   useEffect(() => {
     loadAthletes();
-  }, [loadAthletes]);
+    loadTemplates();
+  }, [loadAthletes, loadTemplates]);
 
   // OPTIMIZATION: Memoize court dimensions to avoid recalculation
   const courtDimensions = useMemo(() => {
@@ -54,6 +61,45 @@ const TrainingControl: React.FC = () => {
       height: 450,
     };
   }, []); // Only calculate once on mount
+
+  // Compute current target position from template
+  // Half-court coordinates (cm) need to be converted to full court coordinates (meters)
+  // Half-court: 610cm wide (x) × 670cm deep (y) - origin at net
+  // Full court: 13.4m long (x) × 6.1m wide (y) - origin at bottom-left
+  const currentTarget = useMemo(() => {
+    if (!selectedTemplate || selectedTemplate.positions.length === 0) {
+      return null;
+    }
+    const position = selectedTemplate.positions[currentTargetIndex % selectedTemplate.positions.length];
+    // Convert half-court cm to full court meters
+    // For now, map to right half of court (x: 6.7-13.4m)
+    // Half-court x (0-610cm) maps to court y (0-6.1m) - width
+    // Half-court y (0-670cm) maps to court x (6.7-13.4m) - depth from net
+    const cmToMeterY = (cm: number) => (cm / 100);  // y in half-court → y in full court
+    const cmToMeterX = (cm: number) => 6.7 + (cm / 100);  // y in half-court → x in full court (right half)
+
+    return {
+      box: {
+        x1: cmToMeterX(position.box.y1),
+        y1: cmToMeterY(position.box.x1),
+        x2: cmToMeterX(position.box.y2),
+        y2: cmToMeterY(position.box.x2),
+      },
+      dot: {
+        x: cmToMeterX(position.dot.y),
+        y: cmToMeterY(position.dot.x),
+      },
+    };
+  }, [selectedTemplate, currentTargetIndex]);
+
+  // Handle template selection
+  const handleTemplateChange = useCallback(
+    (templateId: string) => {
+      const template = templates.find((t) => t.id === templateId);
+      selectTemplate(template || null);
+    },
+    [templates, selectTemplate]
+  );
 
   // OPTIMIZATION: useCallback for stable function references
   const handleAthleteChange = useCallback(
@@ -169,9 +215,18 @@ const TrainingControl: React.FC = () => {
             onNavigateToAthletes={handleNavigateToAthletes}
           />
 
+          {/* Template selection - required before starting */}
+          <TemplateSelector
+            templates={templates}
+            selectedTemplate={selectedTemplate}
+            isTrainingActive={isTrainingActive}
+            onTemplateChange={handleTemplateChange}
+          />
+
           {/* REFACTORED: Training controls extracted to separate component */}
           <TrainingControls
             selectedAthlete={selectedAthlete}
+            selectedTemplate={selectedTemplate}
             currentSession={currentSession}
             isTrainingActive={isTrainingActive}
             onStartTraining={handleStartTraining}
@@ -180,7 +235,13 @@ const TrainingControl: React.FC = () => {
 
           {/* REFACTORED: Live session info extracted to separate component */}
           {isTrainingActive && currentSession && (
-            <LiveSessionInfo session={currentSession} />
+            <LiveSessionInfo
+              session={currentSession}
+              templateName={selectedTemplate?.name}
+              currentPositionIndex={currentTargetIndex}
+              totalPositions={selectedTemplate?.positions.length}
+              lastShotInBox={liveCourtData?.inBox}
+            />
           )}
         </Box>
 
@@ -190,6 +251,8 @@ const TrainingControl: React.FC = () => {
             isTrainingActive={isTrainingActive}
             liveCourtData={liveCourtData}
             courtDimensions={courtDimensions}
+            targetBox={currentTarget?.box}
+            targetDot={currentTarget?.dot}
           />
         </Box>
       </Box>
@@ -215,8 +278,10 @@ const CourtVisualizationCard = React.memo<{
   isTrainingActive: boolean;
   liveCourtData: ShotData | null;
   courtDimensions: { width: number; height: number };
+  targetBox?: { x1: number; y1: number; x2: number; y2: number };
+  targetDot?: { x: number; y: number };
 }>(
-  ({ isTrainingActive, liveCourtData, courtDimensions }) => {
+  ({ isTrainingActive, liveCourtData, courtDimensions, targetBox, targetDot }) => {
     return (
       <Box
         sx={{
@@ -253,6 +318,9 @@ const CourtVisualizationCard = React.memo<{
             currentShot={liveCourtData || undefined}
             width={courtDimensions.width}
             height={courtDimensions.height}
+            targetBox={targetBox}
+            targetDot={targetDot}
+            inBox={liveCourtData?.inBox}
           />
         )}
       </Box>
@@ -262,7 +330,9 @@ const CourtVisualizationCard = React.memo<{
     // Custom comparison: only re-render if these props change
     return (
       prevProps.isTrainingActive === nextProps.isTrainingActive &&
-      prevProps.liveCourtData === nextProps.liveCourtData
+      prevProps.liveCourtData === nextProps.liveCourtData &&
+      prevProps.targetBox === nextProps.targetBox &&
+      prevProps.targetDot === nextProps.targetDot
     );
   }
 );

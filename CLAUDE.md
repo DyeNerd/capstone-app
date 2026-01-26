@@ -30,7 +30,8 @@ capstone/
 │   │   │   │   ├── AthleteSelector.tsx
 │   │   │   │   ├── TrainingControls.tsx
 │   │   │   │   ├── LiveSessionInfo.tsx
-│   │   │   │   └── SessionSaveDialog.tsx
+│   │   │   │   ├── SessionSaveDialog.tsx
+│   │   │   │   └── TemplateSelector.tsx
 │   │   │   ├── Login.tsx
 │   │   │   ├── Register.tsx
 │   │   │   ├── Navigation.tsx
@@ -181,7 +182,7 @@ Frontend (React) ←→ Backend API (Express.js) ←→ PostgreSQL
 - `leave_session` - Leave session room
 
 ### Server → Client
-- `shot_received` - New shot data from CV
+- `shot_received` - New shot data from CV (includes `in_box`, `target_position_index` when using templates)
 - `session_stats_updated` - Updated session statistics
 - `session_ended` - Session ended notification
 
@@ -450,9 +451,10 @@ The project includes optimized versions of performance-critical files archived i
 
 - `badminton-frontend/src/components/training/` (New sub-components directory)
   - `AthleteSelector.tsx` (87 lines) - Memoized athlete selection
-  - `TrainingControls.tsx` (121 lines) - Start/stop controls with error handling
-  - `LiveSessionInfo.tsx` (95 lines) - Auto-updating session info
+  - `TrainingControls.tsx` (164 lines) - Start/stop controls with template validation
+  - `LiveSessionInfo.tsx` (131 lines) - Auto-updating session info with template position
   - `SessionSaveDialog.tsx` (134 lines) - Session save with rating/notes
+  - `TemplateSelector.tsx` (188 lines) - Template selection with court preview
 
 ### Performance Benchmarks (500 shots)
 
@@ -496,7 +498,7 @@ Quick Start (30 minutes for 99.6% backend gain):
 
 ---
 
-**Last Updated:** 2026-01-19
+**Last Updated:** 2026-01-26
 **Project Status:** Production-ready, fully functional, performance-optimized
 **Backend Status:** 100% Complete + Optimized (99.6% performance gain implemented)
 **Frontend Status:** 100% Complete + Optimized (70% fewer renders implemented)

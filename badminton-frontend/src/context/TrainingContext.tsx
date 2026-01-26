@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { Athlete, TrainingSession, Shot, ShotData } from '../types';
+import { Athlete, TrainingSession, Shot, ShotData, TargetTemplate } from '../types';
 import { api } from '../utils/api';
 
 interface TrainingContextType {
@@ -9,11 +9,16 @@ interface TrainingContextType {
   currentSession: TrainingSession | null;
   isTrainingActive: boolean;
   liveCourtData: ShotData | null;
+  templates: TargetTemplate[];
+  selectedTemplate: TargetTemplate | null;
+  currentTargetIndex: number;
   loadAthletes: () => Promise<void>;
   createAthlete: (data: any) => Promise<void>;
   updateAthlete: (id: string, data: any) => Promise<void>;
   deleteAthlete: (id: string) => Promise<void>;
   selectAthlete: (athlete: Athlete) => void;
+  loadTemplates: () => Promise<void>;
+  selectTemplate: (template: TargetTemplate | null) => void;
   startTraining: () => Promise<void>;
   stopTraining: () => Promise<void>;
   saveSession: (notes?: string, rating?: number) => Promise<void>;
@@ -42,6 +47,9 @@ export const TrainingProvider: React.FC<TrainingProviderProps> = ({ children }) 
   const [isTrainingActive, setIsTrainingActive] = useState(false);
   const [liveCourtData, setLiveCourtData] = useState<ShotData | null>(null);
   const [socket, setSocket] = useState<Socket | null>(null);
+  const [templates, setTemplates] = useState<TargetTemplate[]>([]);
+  const [selectedTemplate, setSelectedTemplate] = useState<TargetTemplate | null>(null);
+  const [currentTargetIndex, setCurrentTargetIndex] = useState(0);
 
   // Initialize socket connection
   useEffect(() => {
@@ -72,7 +80,13 @@ export const TrainingProvider: React.FC<TrainingProviderProps> = ({ children }) 
         },
         velocity: shot.velocity_kmh,
         accuracy: shot.accuracy_cm,
+        inBox: shot.in_box,
+        targetPositionIndex: shot.target_position_index,
       });
+      // Update current target index for next shot display
+      if (shot.target_position_index !== undefined) {
+        setCurrentTargetIndex(shot.target_position_index);
+      }
     });
 
     socket.on('session_stats_updated', (stats: any) => {
@@ -150,20 +164,41 @@ export const TrainingProvider: React.FC<TrainingProviderProps> = ({ children }) 
     setSelectedAthlete(athlete);
   };
 
+  const loadTemplates = async () => {
+    try {
+      const result = await api.getTemplates();
+      if (result.success && result.templates) {
+        setTemplates(result.templates);
+      }
+    } catch (error) {
+      console.error('Failed to load templates:', error);
+    }
+  };
+
+  const selectTemplate = (template: TargetTemplate | null) => {
+    setSelectedTemplate(template);
+    setCurrentTargetIndex(0);
+  };
+
   const startTraining = async () => {
     if (!selectedAthlete) {
       throw new Error('No athlete selected');
+    }
+    if (!selectedTemplate) {
+      throw new Error('No template selected');
     }
 
     try {
       const result = await api.startSession({
         athleteId: selectedAthlete.id,
+        templateId: selectedTemplate.id,
       });
 
       if (result.success) {
         setCurrentSession(result.session);
         setIsTrainingActive(true);
         setLiveCourtData(null);
+        setCurrentTargetIndex(0);
 
         // Join socket room
         if (socket) {
@@ -218,11 +253,16 @@ export const TrainingProvider: React.FC<TrainingProviderProps> = ({ children }) 
     currentSession,
     isTrainingActive,
     liveCourtData,
+    templates,
+    selectedTemplate,
+    currentTargetIndex,
     loadAthletes,
     createAthlete,
     updateAthlete,
     deleteAthlete,
     selectAthlete,
+    loadTemplates,
+    selectTemplate,
     startTraining,
     stopTraining,
     saveSession,

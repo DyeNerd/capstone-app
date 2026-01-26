@@ -34,6 +34,8 @@ export interface Shot {
   was_successful: boolean;
   court_zone?: string;
   detection_confidence?: number;
+  in_box?: boolean;
+  target_position_index?: number;
 }
 
 export interface TrainingSession {
@@ -51,6 +53,7 @@ export interface TrainingSession {
   session_notes?: string;
   session_rating?: number;
   shots?: Shot[];
+  template_id?: string;
 }
 
 export interface ShotData {
@@ -60,5 +63,22 @@ export interface ShotData {
   landingPosition: { x: number; y: number };
   velocity?: number;
   accuracy: number;
+  inBox?: boolean;
+  targetPositionIndex?: number;
+}
+
+// Target Templates Types
+export interface TargetPosition {
+  positionIndex: number;
+  box: { x1: number; y1: number; x2: number; y2: number };
+  dot: { x: number; y: number };
+  label?: string;
+}
+
+export interface TargetTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  positions: TargetPosition[];
 }
 

@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useMemo, useCallback } from 'react';
+import React, { useRef, useMemo, useCallback } from 'react';
 import { Box, Typography, Chip } from '@mui/material';
 import { Shot, ShotData } from '../types';
 
@@ -9,6 +9,9 @@ interface CourtVisualizationProps {
   width?: number;
   height?: number;
   showLabels?: boolean;
+  targetBox?: { x1: number; y1: number; x2: number; y2: number };
+  targetDot?: { x: number; y: number };
+  inBox?: boolean;
 }
 
 // Standard badminton court dimensions (meters)
@@ -33,6 +36,9 @@ const CourtVisualization: React.FC<CourtVisualizationProps> = ({
   width = 600,
   height = 400,
   showLabels = true,
+  targetBox,
+  targetDot,
+  inBox,
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
 
@@ -120,31 +126,55 @@ const CourtVisualization: React.FC<CourtVisualizationProps> = ({
   const renderedLiveShot = useMemo(() => {
     if (mode !== 'live' || !currentShot) return null;
 
+    // Use targetDot if provided, otherwise use currentShot.targetPosition
+    const dotX = targetDot ? targetDot.x : currentShot.targetPosition.x;
+    const dotY = targetDot ? targetDot.y : currentShot.targetPosition.y;
+
+    // Determine landing color based on inBox status (if available)
+    const landingColor = currentShot.inBox !== undefined
+      ? (currentShot.inBox ? '#4caf50' : '#f44336')  // Green if in box, Red if outside
+      : getShotColor(currentShot.accuracy);           // Fallback to accuracy-based color
+
     return (
       <g className="live-shot">
-        {/* Target position */}
+        {/* Target box (semi-transparent rectangle) */}
+        {targetBox && (
+          <rect
+            x={toSvgX(targetBox.x1)}
+            y={toSvgY(targetBox.y1)}
+            width={Math.abs(toSvgX(targetBox.x2) - toSvgX(targetBox.x1))}
+            height={Math.abs(toSvgY(targetBox.y2) - toSvgY(targetBox.y1))}
+            fill="#1976d2"
+            fillOpacity="0.15"
+            stroke="#1976d2"
+            strokeWidth="2"
+            strokeDasharray="4,4"
+          />
+        )}
+
+        {/* Target dot with crosshair */}
         <g>
           <circle
-            cx={toSvgX(currentShot.targetPosition.x)}
-            cy={toSvgY(currentShot.targetPosition.y)}
+            cx={toSvgX(dotX)}
+            cy={toSvgY(dotY)}
             r="10"
             fill="none"
             stroke="#1976d2"
             strokeWidth="3"
           />
           <line
-            x1={toSvgX(currentShot.targetPosition.x) - 12}
-            y1={toSvgY(currentShot.targetPosition.y)}
-            x2={toSvgX(currentShot.targetPosition.x) + 12}
-            y2={toSvgY(currentShot.targetPosition.y)}
+            x1={toSvgX(dotX) - 12}
+            y1={toSvgY(dotY)}
+            x2={toSvgX(dotX) + 12}
+            y2={toSvgY(dotY)}
             stroke="#1976d2"
             strokeWidth="3"
           />
           <line
-            x1={toSvgX(currentShot.targetPosition.x)}
-            y1={toSvgY(currentShot.targetPosition.y) - 12}
-            x2={toSvgX(currentShot.targetPosition.x)}
-            y2={toSvgY(currentShot.targetPosition.y) + 12}
+            x1={toSvgX(dotX)}
+            y1={toSvgY(dotY) - 12}
+            x2={toSvgX(dotX)}
+            y2={toSvgY(dotY) + 12}
             stroke="#1976d2"
             strokeWidth="3"
           />
@@ -152,8 +182,8 @@ const CourtVisualization: React.FC<CourtVisualizationProps> = ({
 
         {/* Accuracy line */}
         <line
-          x1={toSvgX(currentShot.targetPosition.x)}
-          y1={toSvgY(currentShot.targetPosition.y)}
+          x1={toSvgX(dotX)}
+          y1={toSvgY(dotY)}
           x2={toSvgX(currentShot.landingPosition.x)}
           y2={toSvgY(currentShot.landingPosition.y)}
           stroke={getShotColor(currentShot.accuracy)}
@@ -161,17 +191,34 @@ const CourtVisualization: React.FC<CourtVisualizationProps> = ({
           strokeDasharray="5,5"
         />
 
-        {/* Landing position with pulsing animation */}
-        <circle
-          cx={toSvgX(currentShot.landingPosition.x)}
-          cy={toSvgY(currentShot.landingPosition.y)}
-          r="10"
-          fill={getShotColor(currentShot.accuracy)}
-          opacity="0.8"
-        >
-          <animate attributeName="r" values="10;15;10" dur="1s" repeatCount="indefinite" />
-          <animate attributeName="opacity" values="0.8;0.4;0.8" dur="1s" repeatCount="indefinite" />
-        </circle>
+        {/* Landing position with pulsing animation and in-box indicator */}
+        <g>
+          {/* In-box indicator ring */}
+          {currentShot.inBox !== undefined && (
+            <circle
+              cx={toSvgX(currentShot.landingPosition.x)}
+              cy={toSvgY(currentShot.landingPosition.y)}
+              r="14"
+              fill="none"
+              stroke={landingColor}
+              strokeWidth="3"
+            >
+              <animate attributeName="r" values="14;18;14" dur="1s" repeatCount="indefinite" />
+              <animate attributeName="opacity" values="1;0.5;1" dur="1s" repeatCount="indefinite" />
+            </circle>
+          )}
+          {/* Landing circle */}
+          <circle
+            cx={toSvgX(currentShot.landingPosition.x)}
+            cy={toSvgY(currentShot.landingPosition.y)}
+            r="10"
+            fill={landingColor}
+            opacity="0.8"
+          >
+            <animate attributeName="r" values="10;15;10" dur="1s" repeatCount="indefinite" />
+            <animate attributeName="opacity" values="0.8;0.4;0.8" dur="1s" repeatCount="indefinite" />
+          </circle>
+        </g>
 
         {/* Shot info */}
         <text
@@ -185,7 +232,7 @@ const CourtVisualization: React.FC<CourtVisualizationProps> = ({
         </text>
       </g>
     );
-  }, [mode, currentShot, toSvgX, toSvgY, getShotColor]);
+  }, [mode, currentShot, toSvgX, toSvgY, getShotColor, targetBox, targetDot]);
 
   return (
     <Box sx={{ position: 'relative' }}>
@@ -362,6 +409,13 @@ const LiveShotInfo = React.memo<{ shot: ShotData }>(({ shot }) => {
           label={`Accuracy: ${shot.accuracy.toFixed(1)} cm`}
           color={shot.accuracy < 20 ? 'success' : shot.accuracy < 50 ? 'warning' : 'error'}
         />
+        {shot.inBox !== undefined && (
+          <Chip
+            label={shot.inBox ? 'In Box' : 'Outside Box'}
+            color={shot.inBox ? 'success' : 'error'}
+            variant="outlined"
+          />
+        )}
         {shot.velocity && <Chip label={`Velocity: ${shot.velocity.toFixed(1)} km/h`} />}
         <Chip
           label={`Target: (${shot.targetPosition.x.toFixed(1)}m, ${shot.targetPosition.y.toFixed(1)}m)`}
@@ -385,9 +439,14 @@ LiveShotInfo.displayName = 'LiveShotInfo';
 export default React.memo(
   CourtVisualization,
   (prevProps, nextProps) => {
-    // For live mode: only re-render if currentShot changes
+    // For live mode: re-render if currentShot, targetBox, targetDot, or inBox changes
     if (prevProps.mode === 'live' && nextProps.mode === 'live') {
-      return prevProps.currentShot === nextProps.currentShot;
+      return (
+        prevProps.currentShot === nextProps.currentShot &&
+        prevProps.targetBox === nextProps.targetBox &&
+        prevProps.targetDot === nextProps.targetDot &&
+        prevProps.inBox === nextProps.inBox
+      );
     }
 
     // For review mode: only re-render if shots array changes
