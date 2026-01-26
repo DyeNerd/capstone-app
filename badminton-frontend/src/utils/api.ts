@@ -88,8 +88,23 @@ export const api = {
     return response.json();
   },
 
+  // Template endpoints (public, no auth required)
+  getTemplates: async () => {
+    const response = await fetch(`${API_BASE_URL}/templates`, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+    return response.json();
+  },
+
+  getTemplate: async (id: string) => {
+    const response = await fetch(`${API_BASE_URL}/templates/${id}`, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+    return response.json();
+  },
+
   // Session endpoints
-  startSession: async (data: { athleteId: string; targetZone?: string }) => {
+  startSession: async (data: { athleteId: string; templateId?: string; targetZone?: string }) => {
     const response = await fetch(`${API_BASE_URL}/sessions/start`, {
       method: 'POST',
       headers: getAuthHeaders(),
