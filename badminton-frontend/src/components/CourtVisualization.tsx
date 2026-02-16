@@ -96,10 +96,12 @@ const CourtVisualization: React.FC<CourtVisualizationProps> = ({
     if (mode !== 'review') return null;
 
     return shots.map((shot) => {
-      const targetX = toSvgX(shot.target_position_x);
-      const targetY = toSvgY(shot.target_position_y);
-      const landingX = toSvgX(shot.landing_position_x);
-      const landingY = toSvgY(shot.landing_position_y);
+      // COORDINATE CONVERSION: Backend stores positions in meters, but halfCourt mode uses cm
+      // When halfCourt is enabled, convert from meters to cm (multiply by 100)
+      const targetX = toSvgX(halfCourt ? Number(shot.target_position_x) * 100 : shot.target_position_x);
+      const targetY = toSvgY(halfCourt ? Number(shot.target_position_y) * 100 : shot.target_position_y);
+      const landingX = toSvgX(halfCourt ? Number(shot.landing_position_x) * 100 : shot.landing_position_x);
+      const landingY = toSvgY(halfCourt ? Number(shot.landing_position_y) * 100 : shot.landing_position_y);
       const color = getShotColor(shot.accuracy_cm);
 
       return (
@@ -149,7 +151,27 @@ const CourtVisualization: React.FC<CourtVisualizationProps> = ({
         </g>
       );
     });
-  }, [mode, shots, showLabels, toSvgX, toSvgY, getShotColor]);
+  }, [mode, shots, showLabels, toSvgX, toSvgY, getShotColor, halfCourt]);
+
+  // OPTIMIZATION: Memoize target box rendering (for both live and review modes)
+  const renderedTargetBox = useMemo(() => {
+    // Skip if no target box or if in live mode (live mode renders it in renderedLiveShot)
+    if (!targetBox || mode === 'live') return null;
+
+    return (
+      <rect
+        x={toSvgX(targetBox.x1)}
+        y={toSvgY(targetBox.y1)}
+        width={Math.abs(toSvgX(targetBox.x2) - toSvgX(targetBox.x1))}
+        height={Math.abs(toSvgY(targetBox.y2) - toSvgY(targetBox.y1))}
+        fill="#1976d2"
+        fillOpacity="0.15"
+        stroke="#1976d2"
+        strokeWidth="2"
+        strokeDasharray="4,4"
+      />
+    );
+  }, [targetBox, mode, toSvgX, toSvgY]);
 
   // OPTIMIZATION: Memoize live shot rendering
   const renderedLiveShot = useMemo(() => {
@@ -335,6 +357,9 @@ const CourtVisualization: React.FC<CourtVisualizationProps> = ({
             toSvgY={toSvgY}
           />
         )}
+
+        {/* Target box for review mode (live mode renders it in renderedLiveShot) */}
+        {renderedTargetBox}
 
         {/* Review mode: Show all shots */}
         {renderedShots}
@@ -661,13 +686,14 @@ export default React.memo(
       );
     }
 
-    // For review mode: only re-render if shots array or halfCourt changes
+    // For review mode: only re-render if shots array, halfCourt, or targetBox changes
     if (prevProps.mode === 'review' && nextProps.mode === 'review') {
       return (
         prevProps.shots?.length === nextProps.shots?.length &&
         prevProps.width === nextProps.width &&
         prevProps.height === nextProps.height &&
-        prevProps.halfCourt === nextProps.halfCourt
+        prevProps.halfCourt === nextProps.halfCourt &&
+        prevProps.targetBox === nextProps.targetBox
       );
     }
 

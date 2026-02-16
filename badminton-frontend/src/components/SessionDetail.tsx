@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -87,6 +87,16 @@ const SessionDetail: React.FC = () => {
   const handleShotClick = (index: number) => {
     setSelectedShotIndex(index);
   };
+
+  // Calculate target box for selected shot when using template
+  const selectedShot = session?.shots?.[selectedShotIndex];
+  const targetBox = useMemo(() => {
+    if (!template || selectedShot?.target_position_index === undefined || selectedShot?.target_position_index === null) {
+      return undefined;
+    }
+    const pos = template.positions[selectedShot.target_position_index];
+    return pos?.box;
+  }, [template, selectedShot?.target_position_index]);
 
   if (loading) {
     return (
@@ -275,6 +285,7 @@ const SessionDetail: React.FC = () => {
                 height={500}
                 showLabels={true}
                 halfCourt={!!session.template_id}
+                targetBox={targetBox}
               />
 
               {/* Navigation Buttons */}
