@@ -12,8 +12,7 @@ export interface ShotDataFromCV {
   sessionId: string;
   shotNumber: number;
   timestamp: string;
-  targetPosition: { x: number; y: number };
-  landingPosition: { x: number; y: number };
+  landingPosition: { x: number; y: number }; // In cm (half-court: 0-610 x 0-670)
   velocity?: number;
   detectionConfidence?: number;
 }

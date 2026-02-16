@@ -22,6 +22,11 @@ npm run test:headed
 
 # View test report
 npm run report
+
+# For debugging
+cd /Users/vlumsirichar/uni/capstone/e2e
+PWDEBUG=1 npx playwright test training-session --project=chromium
+
 ```
 
 ## What Gets Tested

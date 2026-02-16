@@ -4,12 +4,12 @@ Mock CV Component - Simulates Computer Vision System Sending Shot Data
 This script sends mock badminton shot data to RabbitMQ.
 
 Usage:
-  python mock_cv_component.py <session_id> [--count N] [--interval-ms MS]
+  python mock_cv_component.py <session_id> [--count N] [--interval-ms MS] [--template ID]
 
 Examples:
-  python mock_cv_component.py abc123                           # 10 shots, 3s interval (default)
-  python mock_cv_component.py abc123 --count 50                # 50 shots, 3s interval
-  python mock_cv_component.py abc123 --count 50 --interval-ms 50  # 50 shots, 50ms interval
+  python mock_cv_component.py abc123                                    # 10 shots, random landing
+  python mock_cv_component.py abc123 --count 50 --interval-ms 50        # 50 shots, 50ms interval
+  python mock_cv_component.py abc123 --count 50 --template template-001 # 50 shots, 100% accurate on template
 """
 
 import pika
@@ -63,92 +63,108 @@ RABBITMQ_PASS = rabbitmq_config['password']
 EXCHANGE = 'badminton_training'
 ROUTING_KEY = 'shot.data.mock'
 
-# Badminton Court Dimensions (in meters)
-COURT_WIDTH = 6.1
-COURT_LENGTH = 13.4
+# Half-Court Dimensions (in centimeters)
+# Template coordinate system: (0,0) at net left, (610, 670) at baseline right
+HALF_COURT_WIDTH = 610   # cm
+HALF_COURT_DEPTH = 670   # cm
 
-def generate_court_position(zone='random'):
+# Template-001 target dots (exact landing positions for 100% accuracy)
+# Shot N lands on position N % 3, cycling through all 3 positions
+TEMPLATE_001_DOTS = [
+    {'x': 46, 'y': 670},   # Position 0 - Bottom-left corner (baseline)
+    {'x': 526, 'y': 236},  # Position 1 - Mid-right area
+    {'x': 526, 'y': 38},   # Position 2 - Top-right near net
+]
+
+def get_template_landing_position(template_id: str, shot_number: int) -> dict:
     """
-    Generate realistic positions on badminton court.
-    Court coordinates: x=[0, 6.1], y=[0, 13.4]
+    Get landing position for a shot that lands exactly on the template target dot.
+    Returns the exact target dot coordinates for 100% accuracy.
+
+    Args:
+        template_id: Template ID (currently only 'template-001' supported)
+        shot_number: The shot number (0-indexed), used to cycle through positions
+
+    Returns:
+        dict with 'x' and 'y' coordinates in cm
+    """
+    if template_id == 'template-001':
+        position_index = shot_number % len(TEMPLATE_001_DOTS)
+        return TEMPLATE_001_DOTS[position_index].copy()
+    else:
+        # Unknown template, fall back to random
+        return generate_landing_position('random')
+
+def generate_landing_position(zone='random'):
+    """
+    Generate realistic landing positions on half-court in centimeters.
+    Half-court coordinates: x=[0, 610], y=[0, 670]
+    (0,0) is at the net, (610, 670) is at the baseline.
+
+    Note: Target positions come from templates on the backend.
+    This function just generates where the shuttlecock lands.
     """
     if zone == 'random':
         zones = ['front_left', 'front_right', 'back_left', 'back_right', 'mid_left', 'mid_right']
         zone = random.choice(zones)
-    
-    # Define zone boundaries
+
+    # Define zone boundaries in cm (half-court)
+    # y=0 is at net, y=670 is at baseline
     zone_positions = {
-        'front_left': (1.5, 2.5, 3.0, 5.0),    # (x_min, x_max, y_min, y_max)
-        'front_right': (3.6, 4.6, 3.0, 5.0),
-        'mid_left': (1.5, 2.5, 6.0, 7.5),
-        'mid_right': (3.6, 4.6, 6.0, 7.5),
-        'back_left': (1.0, 2.5, 9.5, 12.0),
-        'back_right': (3.6, 5.1, 9.5, 12.0),
+        'front_left': (50, 200, 0, 200),       # Near net, left side
+        'front_right': (410, 560, 0, 200),     # Near net, right side
+        'mid_left': (50, 200, 250, 420),       # Mid court, left side
+        'mid_right': (410, 560, 250, 420),     # Mid court, right side
+        'back_left': (50, 200, 470, 670),      # Baseline, left side
+        'back_right': (410, 560, 470, 670),    # Baseline, right side
     }
-    
+
     if zone in zone_positions:
         x_min, x_max, y_min, y_max = zone_positions[zone]
-        x = round(random.uniform(x_min, x_max), 2)
-        y = round(random.uniform(y_min, y_max), 2)
+        x = round(random.uniform(x_min, x_max))
+        y = round(random.uniform(y_min, y_max))
     else:
-        # Fallback: anywhere on court
-        x = round(random.uniform(0.5, COURT_WIDTH - 0.5), 2)
-        y = round(random.uniform(2.0, COURT_LENGTH - 1.0), 2)
-    
+        # Fallback: anywhere on half-court
+        x = round(random.uniform(50, HALF_COURT_WIDTH - 50))
+        y = round(random.uniform(50, HALF_COURT_DEPTH - 50))
+
     return {'x': x, 'y': y}
 
-def generate_landing_near_target(target, accuracy_level='medium'):
-    """
-    Generate landing position near target with realistic variance.
-    accuracy_level: 'high' (±10cm), 'medium' (±30cm), 'low' (±60cm)
-    """
-    variance_map = {
-        'high': 0.10,    # ±10cm
-        'medium': 0.30,  # ±30cm
-        'low': 0.60,     # ±60cm
-    }
-    
-    max_variance = variance_map.get(accuracy_level, 0.30)
-    
-    # Add random variance
-    dx = random.uniform(-max_variance, max_variance)
-    dy = random.uniform(-max_variance, max_variance)
-    
-    landing_x = round(max(0, min(COURT_WIDTH, target['x'] + dx)), 2)
-    landing_y = round(max(0, min(COURT_LENGTH, target['y'] + dy)), 2)
-    
-    return {'x': landing_x, 'y': landing_y}
-
-def generate_mock_shot(session_id, shot_number):
+def generate_mock_shot(session_id, shot_number, template_id=None):
     """
     Generate a single mock shot data matching ShotDataFromCV interface.
+
+    Note: targetPosition is NOT sent - the backend determines target from
+    the session's template based on shot number (cycling through positions).
+
+    Args:
+        session_id: The training session ID
+        shot_number: The shot number (0-indexed for template cycling)
+        template_id: Optional template ID for 100% accurate shots on target dots
     """
-    # Vary accuracy level for realistic data
-    accuracy_levels = ['high', 'high', 'medium', 'medium', 'medium', 'low']
-    accuracy = random.choice(accuracy_levels)
-    
-    # Generate target position
-    target = generate_court_position('random')
-    
-    # Generate landing position near target
-    landing = generate_landing_near_target(target, accuracy)
-    
+    # Generate landing position on half-court (in cm)
+    if template_id:
+        # Land exactly on template target dot for 100% accuracy
+        landing = get_template_landing_position(template_id, shot_number)
+    else:
+        # Random landing position
+        landing = generate_landing_position('random')
+
     # Generate velocity (realistic smash/clear speeds: 150-300 km/h)
     velocity = round(random.uniform(180, 280), 1)
-    
+
     # Detection confidence (CV system confidence: 0.85-0.99)
     confidence = round(random.uniform(0.88, 0.98), 2)
-    
+
     shot_data = {
         'sessionId': session_id,
         'shotNumber': shot_number,
         'timestamp': datetime.utcnow().isoformat() + 'Z',
-        'targetPosition': target,
-        'landingPosition': landing,
+        'landingPosition': landing,  # In cm (half-court: 0-610 x 0-670)
         'velocity': velocity,
         'detectionConfidence': confidence
     }
-    
+
     return shot_data
 
 def send_to_rabbitmq(shot_data):
@@ -214,36 +230,41 @@ Examples:
                         help='Number of shots to send (default: 10)')
     parser.add_argument('--interval-ms', type=int, default=3000,
                         help='Interval between shots in milliseconds (default: 3000)')
+    parser.add_argument('--template', type=str, default=None,
+                        help='Template ID for 100%% accurate shots (e.g., template-001)')
 
     args = parser.parse_args()
 
     session_id = args.session_id
     shot_count = args.count
     interval_seconds = args.interval_ms / 1000.0
+    template_id = args.template
 
     print("🏸 Mock CV Component - Badminton Shot Data Generator")
     print("=" * 60)
     print(f"📋 Session ID: {session_id}")
     print(f"🔌 RabbitMQ: {RABBITMQ_HOST}:{RABBITMQ_PORT} (user: {RABBITMQ_USER})")
+    if template_id:
+        print(f"🎯 Template: {template_id} (100% accurate shots on target dots)")
     print(f"🎯 Sending {shot_count} shots with {args.interval_ms}ms interval...\n")
 
     # Send shots
     for shot_num in range(1, shot_count + 1):
-        # Generate shot data
-        shot_data = generate_mock_shot(session_id, shot_num)
+        # Generate shot data (use 0-indexed for template position cycling)
+        shot_data = generate_mock_shot(session_id, shot_num, template_id)
 
         # Display shot info
-        target = shot_data['targetPosition']
         landing = shot_data['landingPosition']
-        distance = ((target['x'] - landing['x'])**2 + (target['y'] - landing['y'])**2)**0.5
-        distance_cm = distance * 100
 
         print(f"Shot #{shot_num}:")
-        print(f"  Target:   ({target['x']:.2f}, {target['y']:.2f})")
-        print(f"  Landing:  ({landing['x']:.2f}, {landing['y']:.2f})")
-        print(f"  Accuracy: {distance_cm:.1f} cm")
+        print(f"  Landing:  ({landing['x']}, {landing['y']}) cm")
         print(f"  Velocity: {shot_data['velocity']} km/h")
         print(f"  Confidence: {shot_data['detectionConfidence']}")
+        if template_id:
+            position_index = shot_num % 3
+            print(f"  Template Position: {position_index} (100% on target)")
+        else:
+            print(f"  (Target determined by backend template)")
 
         # Send to RabbitMQ
         if send_to_rabbitmq(shot_data):

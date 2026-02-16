@@ -62,33 +62,17 @@ const TrainingControl: React.FC = () => {
     };
   }, []); // Only calculate once on mount
 
-  // Compute current target position from template
-  // Half-court coordinates (cm) need to be converted to full court coordinates (meters)
-  // Half-court: 610cm wide (x) × 670cm deep (y) - origin at net
-  // Full court: 13.4m long (x) × 6.1m wide (y) - origin at bottom-left
+  // Compute current target position from template (in cm, for half-court mode)
+  // No conversion needed - CourtVisualization handles cm directly in halfCourt mode
   const currentTarget = useMemo(() => {
     if (!selectedTemplate || selectedTemplate.positions.length === 0) {
       return null;
     }
     const position = selectedTemplate.positions[currentTargetIndex % selectedTemplate.positions.length];
-    // Convert half-court cm to full court meters
-    // For now, map to right half of court (x: 6.7-13.4m)
-    // Half-court x (0-610cm) maps to court y (0-6.1m) - width
-    // Half-court y (0-670cm) maps to court x (6.7-13.4m) - depth from net
-    const cmToMeterY = (cm: number) => (cm / 100);  // y in half-court → y in full court
-    const cmToMeterX = (cm: number) => 6.7 + (cm / 100);  // y in half-court → x in full court (right half)
-
+    // Pass coordinates directly in cm (half-court coordinate system)
     return {
-      box: {
-        x1: cmToMeterX(position.box.y1),
-        y1: cmToMeterY(position.box.x1),
-        x2: cmToMeterX(position.box.y2),
-        y2: cmToMeterY(position.box.x2),
-      },
-      dot: {
-        x: cmToMeterX(position.dot.y),
-        y: cmToMeterY(position.dot.x),
-      },
+      box: position.box,
+      dot: position.dot,
     };
   }, [selectedTemplate, currentTargetIndex]);
 
@@ -253,6 +237,7 @@ const TrainingControl: React.FC = () => {
             courtDimensions={courtDimensions}
             targetBox={currentTarget?.box}
             targetDot={currentTarget?.dot}
+            halfCourt={!!selectedTemplate}
           />
         </Box>
       </Box>
@@ -280,8 +265,9 @@ const CourtVisualizationCard = React.memo<{
   courtDimensions: { width: number; height: number };
   targetBox?: { x1: number; y1: number; x2: number; y2: number };
   targetDot?: { x: number; y: number };
+  halfCourt?: boolean;
 }>(
-  ({ isTrainingActive, liveCourtData, courtDimensions, targetBox, targetDot }) => {
+  ({ isTrainingActive, liveCourtData, courtDimensions, targetBox, targetDot, halfCourt }) => {
     return (
       <Box
         sx={{
@@ -321,6 +307,7 @@ const CourtVisualizationCard = React.memo<{
             targetBox={targetBox}
             targetDot={targetDot}
             inBox={liveCourtData?.inBox}
+            halfCourt={halfCourt}
           />
         )}
       </Box>
@@ -332,7 +319,8 @@ const CourtVisualizationCard = React.memo<{
       prevProps.isTrainingActive === nextProps.isTrainingActive &&
       prevProps.liveCourtData === nextProps.liveCourtData &&
       prevProps.targetBox === nextProps.targetBox &&
-      prevProps.targetDot === nextProps.targetDot
+      prevProps.targetDot === nextProps.targetDot &&
+      prevProps.halfCourt === nextProps.halfCourt
     );
   }
 );

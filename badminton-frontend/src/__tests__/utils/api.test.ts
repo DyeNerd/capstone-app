@@ -360,6 +360,121 @@ describe('API Utilities', () => {
     });
   });
 
+  describe('Template endpoints', () => {
+    it('should get all templates without auth', async () => {
+      const mockResponse = {
+        success: true,
+        templates: [
+          {
+            id: 'template-001',
+            name: 'template-001',
+            description: 'first template',
+            positions: [
+              { positionIndex: 0, box: { x1: 46, y1: 594, x2: 122, y2: 670 }, dot: { x: 46, y: 670 } },
+              { positionIndex: 1, box: { x1: 488, y1: 198, x2: 564, y2: 274 }, dot: { x: 526, y: 236 } },
+              { positionIndex: 2, box: { x1: 488, y1: 0, x2: 564, y2: 76 }, dot: { x: 526, y: 38 } },
+            ],
+          },
+        ],
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        json: async () => mockResponse,
+      });
+
+      const result = await api.getTemplates();
+
+      expect(global.fetch).toHaveBeenCalledWith(`${API_BASE_URL}/templates`, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+      expect(result).toEqual(mockResponse);
+      expect(result.templates).toHaveLength(1);
+      expect(result.templates[0].positions).toHaveLength(3);
+    });
+
+    it('should get template by id without auth', async () => {
+      const mockResponse = {
+        success: true,
+        template: {
+          id: 'template-001',
+          name: 'template-001',
+          description: 'first template',
+          positions: [
+            { positionIndex: 0, box: { x1: 46, y1: 594, x2: 122, y2: 670 }, dot: { x: 46, y: 670 } },
+            { positionIndex: 1, box: { x1: 488, y1: 198, x2: 564, y2: 274 }, dot: { x: 526, y: 236 } },
+            { positionIndex: 2, box: { x1: 488, y1: 0, x2: 564, y2: 76 }, dot: { x: 526, y: 38 } },
+          ],
+        },
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        json: async () => mockResponse,
+      });
+
+      const result = await api.getTemplate('template-001');
+
+      expect(global.fetch).toHaveBeenCalledWith(`${API_BASE_URL}/templates/template-001`, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+      expect(result).toEqual(mockResponse);
+      expect(result.template.id).toBe('template-001');
+    });
+
+    it('should not include auth token for template requests', async () => {
+      // Even with token set, templates should not send auth
+      localStorage.setItem('token', 'jwt_token');
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        json: async () => ({ success: true, templates: [] }),
+      });
+
+      await api.getTemplates();
+
+      expect(global.fetch).toHaveBeenCalledWith(`${API_BASE_URL}/templates`, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+      // Verify no Authorization header was sent
+      const calledHeaders = (global.fetch as jest.Mock).mock.calls[0][1].headers;
+      expect(calledHeaders).not.toHaveProperty('Authorization');
+    });
+
+    it('should start session with templateId', async () => {
+      localStorage.setItem('token', 'jwt_token');
+
+      const mockResponse = {
+        success: true,
+        session: {
+          id: 'session-1',
+          athlete_id: 'athlete-1',
+          template_id: 'template-001',
+          status: 'active',
+        },
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        json: async () => mockResponse,
+      });
+
+      const result = await api.startSession({
+        athleteId: 'athlete-1',
+        templateId: 'template-001',
+      });
+
+      expect(global.fetch).toHaveBeenCalledWith(`${API_BASE_URL}/sessions/start`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer jwt_token',
+        },
+        body: JSON.stringify({
+          athleteId: 'athlete-1',
+          templateId: 'template-001',
+        }),
+      });
+      expect(result.session.template_id).toBe('template-001');
+    });
+  });
+
   describe('Authorization headers', () => {
     it('should not include Authorization header when no token', async () => {
       (global.fetch as jest.Mock).mockResolvedValue({

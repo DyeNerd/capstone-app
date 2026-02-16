@@ -49,7 +49,9 @@ test.describe('Training Session E2E', () => {
     });
   });
 
-  test('Complete training session with 50 shots and real-time tracking', async ({ page }) => {
+  // TEMPORARY: Extended timeout for 1-second shot intervals (50 shots = ~55s + overhead)
+  test('Complete training session with 50 shots (100% accuracy on template-001)', async ({ page }) => {
+    test.setTimeout(120000); // 2 minutes timeout
     let sessionId: string;
 
     // STEP 1: Login via browser
@@ -88,7 +90,7 @@ test.describe('Training Session E2E', () => {
 
     // STEP 4: Select athlete
     await test.step('Select athlete', async () => {
-      // Find the Material-UI Select component
+      // Find the Material-UI Select component (first combobox is athlete selector)
       const athleteSelector = page.locator('[role="combobox"]').first();
       await athleteSelector.waitFor({ state: 'visible', timeout: 5000 });
 
@@ -108,7 +110,41 @@ test.describe('Training Session E2E', () => {
       console.log(`✓ Step 4: Selected athlete: ${testAthletes.beginner.athlete_name}`);
     });
 
-    // STEP 5: Start training session
+    // STEP 5: Select target template (required before starting session)
+    await test.step('Select target template', async () => {
+      // Find the template selector (second combobox, or look for the label)
+      const templateSelector = page.locator('label:has-text("Select Template")').locator('..').locator('[role="combobox"]');
+
+      // If not found by label, try finding by order (template selector comes after athlete selector)
+      const selector = await templateSelector.count() > 0
+        ? templateSelector
+        : page.locator('[role="combobox"]').nth(1);
+
+      await selector.waitFor({ state: 'visible', timeout: 5000 });
+
+      // Click to open the dropdown
+      await selector.click();
+
+      // Wait for dropdown menu to appear
+      await page.waitForTimeout(500);
+
+      // Select the first available template (template-001)
+      const templateOption = page.locator('[role="option"]').first();
+      await templateOption.click();
+
+      // Wait for template to be selected and preview to load
+      await page.waitForTimeout(500);
+
+      // Verify template was selected (check for success alert)
+      const successAlert = page.locator('.MuiAlert-standardSuccess, [role="alert"]:has-text("template")');
+      if (await successAlert.count() > 0) {
+        console.log('✓ Step 5: Target template selected');
+      } else {
+        console.log('✓ Step 5: Template selection attempted');
+      }
+    });
+
+    // STEP 6: Start training session
     await test.step('Start training session', async () => {
       // Click start button
       const startButton = page.locator(
@@ -146,23 +182,24 @@ test.describe('Training Session E2E', () => {
       const stopButton = page.locator('button:has-text("Stop"), button:has-text("End")');
       await expect(stopButton).toBeVisible({ timeout: 5000 });
 
-      console.log(`✓ Step 5: Training session started (ID: ${sessionId})`);
+      console.log(`✓ Step 6: Training session started (ID: ${sessionId})`);
     });
 
-    // STEP 6: Run mock CV component to send shots
-    await test.step('Send 50 shots via mock CV', async () => {
-      console.log('Sending 50 shots with 50ms intervals...');
+    // STEP 7: Run mock CV component to send 100% accurate shots using template-001
+    await test.step('Send 50 shots via mock CV (100% accurate)', async () => {
+      console.log('Sending 50 shots with 500ms intervals using template-001 (100% accuracy)...');
 
-      // Run CV mock in background
-      await cvMock.sendShots(sessionId, { count: 50, interval: 50 });
+      // Run CV mock with template-001 for 100% accurate shots on target dots
+      // TEMPORARY: Using 0.5 second interval for debugging visualization
+      await cvMock.sendAccurateShots(sessionId, 50, 500);
 
-      // Wait for shots to be processed (50 shots * 50ms = 2.5s + buffer)
-      await page.waitForTimeout(4000);
+      // Wait for shots to be processed
+      await page.waitForTimeout(10000);
 
-      console.log('✓ Step 6: All 50 shots sent and processed');
+      console.log('✓ Step 7: All 50 shots sent with 100% accuracy on template dots');
     });
 
-    // STEP 7: Verify shots displayed in UI
+    // STEP 8: Verify shots displayed in UI
     await test.step('Verify shot visualization', async () => {
       // Wait for shots to be rendered
       await page.waitForTimeout(2000);
@@ -172,7 +209,7 @@ test.describe('Training Session E2E', () => {
 
       // The page should show "50" somewhere (total shots counter)
       if (shotCountText && shotCountText.includes('50')) {
-        console.log('✓ Step 7: Shot count (50) found in page text');
+        console.log('✓ Step 8: Shot count (50) found in page text');
       } else {
         console.warn('⚠ Shot count not found in page, but continuing test');
       }
@@ -182,16 +219,16 @@ test.describe('Training Session E2E', () => {
       const svgExists = await courtSVG.count();
       expect(svgExists).toBeGreaterThan(0);
 
-      console.log('✓ Step 7: Court visualization verified');
+      console.log('✓ Step 8: Court visualization verified');
     });
 
-    // STEP 8: Verify WebSocket events received (optional - skip if helper not working)
+    // STEP 9: Verify WebSocket events received (optional - skip if helper not working)
     await test.step('Verify WebSocket events', async () => {
       try {
         const events = await wsHelper.getSocketEvents(page);
 
         if (events && events.length > 0) {
-          console.log(`✓ Step 8: WebSocket tracking received ${events.length} events`);
+          console.log(`✓ Step 9: WebSocket tracking received ${events.length} events`);
         } else {
           console.warn('⚠ No WebSocket events captured, but continuing test');
         }
@@ -200,7 +237,7 @@ test.describe('Training Session E2E', () => {
       }
     });
 
-    // STEP 9: Stop training session
+    // STEP 10: Stop training session
     await test.step('Stop training session', async () => {
       // Click stop button
       const stopButton = page.locator('button:has-text("Stop"), button:has-text("End")');
@@ -238,11 +275,11 @@ test.describe('Training Session E2E', () => {
       // Wait for session to be saved
       await page.waitForTimeout(2000);
 
-      console.log('✓ Step 9: Training session stopped and saved');
+      console.log('✓ Step 10: Training session stopped and saved');
     });
 
-    // STEP 10: Verify session persisted in database
-    await test.step('Verify session saved', async () => {
+    // STEP 11: Verify session persisted in database with 100% accuracy
+    await test.step('Verify session saved with perfect accuracy', async () => {
       // Fetch session from API to verify it was saved
       const savedSession: any = await apiHelper.getSession(sessionId);
 
@@ -260,15 +297,45 @@ test.describe('Training Session E2E', () => {
       // Check shots (totalShots or total_shots)
       const totalShots = savedSession.totalShots || savedSession.total_shots || 0;
 
-      console.log('✓ Step 10: Session verified in database');
+      // Check accuracy (average_accuracy or averageAccuracy) - should be 0 for perfect shots
+      const avgAccuracy = savedSession.averageAccuracy || savedSession.average_accuracy;
+
+      // Check template_id
+      const templateId = savedSession.templateId || savedSession.template_id;
+
+      console.log('✓ Step 11: Session verified in database');
       console.log(`  - Session ID: ${sessionId}`);
       console.log(`  - Athlete ID: ${savedAthleteId}`);
+      console.log(`  - Template ID: ${templateId}`);
       console.log(`  - Total shots recorded: ${totalShots}`);
+      console.log(`  - Average accuracy: ${avgAccuracy}cm`);
       console.log(`  - Session ended: ${endTime ? 'Yes' : 'No'}`);
 
       // Strict assertion: All 50 shots must be processed
       expect(totalShots).toBe(50);
       console.log('  ✓ All 50 shots were successfully processed and saved');
+
+      // Verify template was used
+      expect(templateId).toBe('template-001');
+      console.log('  ✓ Template-001 was correctly used');
+
+      // Verify 100% accuracy (0cm deviation = perfect shots)
+      // Allow small tolerance due to floating point
+      if (avgAccuracy !== undefined && avgAccuracy !== null) {
+        expect(avgAccuracy).toBeLessThanOrEqual(1);  // Should be 0, allow 1cm tolerance
+        console.log('  ✓ Perfect accuracy verified (0cm deviation)');
+      }
+
+      // Verify in-box metrics if available
+      const shots = savedSession.shots || [];
+      if (shots.length > 0) {
+        const inBoxCount = shots.filter((shot: any) => shot.in_box === true || shot.inBox === true).length;
+        console.log(`  - In-box shots: ${inBoxCount}/${shots.length}`);
+
+        // All shots should be in-box (100% rate)
+        expect(inBoxCount).toBe(shots.length);
+        console.log('  ✓ 100% in-box rate verified');
+      }
     });
 
     console.log('\n✅ Training session E2E test completed successfully!\n');

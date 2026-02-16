@@ -12,11 +12,16 @@ interface CourtVisualizationProps {
   targetBox?: { x1: number; y1: number; x2: number; y2: number };
   targetDot?: { x: number; y: number };
   inBox?: boolean;
+  halfCourt?: boolean; // When true, render half-court in cm (610 × 670)
 }
 
 // Standard badminton court dimensions (meters)
 const COURT_LENGTH = 13.4;
 const COURT_WIDTH = 6.1;
+
+// Half-court dimensions (centimeters) - matches template coordinate system
+const HALF_COURT_WIDTH = 610;  // cm (net to back)
+const HALF_COURT_DEPTH = 670;  // cm (sideline to sideline)
 
 /**
  * REFACTORED: Court Visualization Component
@@ -39,20 +44,35 @@ const CourtVisualization: React.FC<CourtVisualizationProps> = ({
   targetBox,
   targetDot,
   inBox,
+  halfCourt = false,
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
 
   // OPTIMIZATION: Memoize scale calculations (only recalculate if dimensions change)
-  const { padding, scaleX, scaleY, toSvgX, toSvgY } = useMemo(() => {
+  const { padding, toSvgX, toSvgY } = useMemo(() => {
     const padding = 40;
-    const scaleX = (width - padding * 2) / COURT_LENGTH;
-    const scaleY = (height - padding * 2) / COURT_WIDTH;
 
-    const toSvgX = (courtX: number | string) => padding + Number(courtX) * scaleX;
-    const toSvgY = (courtY: number | string) => padding + Number(courtY) * scaleY;
+    if (halfCourt) {
+      // Half-court mode: coordinates in cm (610 × 670)
+      // Origin at top-left (net side), x goes right, y goes down
+      const scaleX = (width - padding * 2) / HALF_COURT_WIDTH;
+      const scaleY = (height - padding * 2) / HALF_COURT_DEPTH;
 
-    return { padding, scaleX, scaleY, toSvgX, toSvgY };
-  }, [width, height]);
+      const toSvgX = (courtX: number | string) => padding + Number(courtX) * scaleX;
+      const toSvgY = (courtY: number | string) => padding + Number(courtY) * scaleY;
+
+      return { padding, toSvgX, toSvgY };
+    } else {
+      // Full-court mode: coordinates in meters (13.4 × 6.1)
+      const scaleX = (width - padding * 2) / COURT_LENGTH;
+      const scaleY = (height - padding * 2) / COURT_WIDTH;
+
+      const toSvgX = (courtX: number | string) => padding + Number(courtX) * scaleX;
+      const toSvgY = (courtY: number | string) => padding + Number(courtY) * scaleY;
+
+      return { padding, toSvgX, toSvgY };
+    }
+  }, [width, height, halfCourt]);
 
   // OPTIMIZATION: Memoize color function to avoid recreation
   const getShotColor = useCallback((accuracyCm: number | string): string => {
@@ -130,6 +150,11 @@ const CourtVisualization: React.FC<CourtVisualizationProps> = ({
     const dotX = targetDot ? targetDot.x : currentShot.targetPosition.x;
     const dotY = targetDot ? targetDot.y : currentShot.targetPosition.y;
 
+    // COORDINATE CONVERSION: Backend stores positions in meters, but halfCourt mode uses cm
+    // When halfCourt is enabled, convert landing position from meters to cm (multiply by 100)
+    const landingX = halfCourt ? currentShot.landingPosition.x * 100 : currentShot.landingPosition.x;
+    const landingY = halfCourt ? currentShot.landingPosition.y * 100 : currentShot.landingPosition.y;
+
     // Determine landing color based on inBox status (if available)
     const landingColor = currentShot.inBox !== undefined
       ? (currentShot.inBox ? '#4caf50' : '#f44336')  // Green if in box, Red if outside
@@ -184,8 +209,8 @@ const CourtVisualization: React.FC<CourtVisualizationProps> = ({
         <line
           x1={toSvgX(dotX)}
           y1={toSvgY(dotY)}
-          x2={toSvgX(currentShot.landingPosition.x)}
-          y2={toSvgY(currentShot.landingPosition.y)}
+          x2={toSvgX(landingX)}
+          y2={toSvgY(landingY)}
           stroke={getShotColor(currentShot.accuracy)}
           strokeWidth="2"
           strokeDasharray="5,5"
@@ -196,8 +221,8 @@ const CourtVisualization: React.FC<CourtVisualizationProps> = ({
           {/* In-box indicator ring */}
           {currentShot.inBox !== undefined && (
             <circle
-              cx={toSvgX(currentShot.landingPosition.x)}
-              cy={toSvgY(currentShot.landingPosition.y)}
+              cx={toSvgX(landingX)}
+              cy={toSvgY(landingY)}
               r="14"
               fill="none"
               stroke={landingColor}
@@ -209,8 +234,8 @@ const CourtVisualization: React.FC<CourtVisualizationProps> = ({
           )}
           {/* Landing circle */}
           <circle
-            cx={toSvgX(currentShot.landingPosition.x)}
-            cy={toSvgY(currentShot.landingPosition.y)}
+            cx={toSvgX(landingX)}
+            cy={toSvgY(landingY)}
             r="10"
             fill={landingColor}
             opacity="0.8"
@@ -222,8 +247,8 @@ const CourtVisualization: React.FC<CourtVisualizationProps> = ({
 
         {/* Shot info */}
         <text
-          x={toSvgX(currentShot.landingPosition.x) + 15}
-          y={toSvgY(currentShot.landingPosition.y)}
+          x={toSvgX(landingX) + 15}
+          y={toSvgY(landingY)}
           fontSize="12"
           fill="#333"
           fontWeight="bold"
@@ -232,7 +257,7 @@ const CourtVisualization: React.FC<CourtVisualizationProps> = ({
         </text>
       </g>
     );
-  }, [mode, currentShot, toSvgX, toSvgY, getShotColor, targetBox, targetDot]);
+  }, [mode, currentShot, toSvgX, toSvgY, getShotColor, targetBox, targetDot, halfCourt]);
 
   return (
     <Box sx={{ position: 'relative' }}>
@@ -243,13 +268,23 @@ const CourtVisualization: React.FC<CourtVisualizationProps> = ({
         style={{ border: '2px solid #e0e0e0', borderRadius: '8px', background: '#f5f5f5' }}
       >
         {/* OPTIMIZATION: Static court lines extracted to memoized component */}
-        <CourtLines
-          padding={padding}
-          width={width}
-          height={height}
-          toSvgX={toSvgX}
-          toSvgY={toSvgY}
-        />
+        {halfCourt ? (
+          <HalfCourtLines
+            padding={padding}
+            width={width}
+            height={height}
+            toSvgX={toSvgX}
+            toSvgY={toSvgY}
+          />
+        ) : (
+          <CourtLines
+            padding={padding}
+            width={width}
+            height={height}
+            toSvgX={toSvgX}
+            toSvgY={toSvgY}
+          />
+        )}
 
         {/* Review mode: Show all shots */}
         {renderedShots}
@@ -262,7 +297,7 @@ const CourtVisualization: React.FC<CourtVisualizationProps> = ({
       {mode === 'review' && <AccuracyLegend />}
 
       {/* Live shot info */}
-      {mode === 'live' && currentShot && <LiveShotInfo shot={currentShot} />}
+      {mode === 'live' && currentShot && <LiveShotInfo shot={currentShot} halfCourt={halfCourt} />}
     </Box>
   );
 };
@@ -372,6 +407,125 @@ const CourtLines = React.memo<{
 CourtLines.displayName = 'CourtLines';
 
 /**
+ * Half-court lines component for template-based training
+ * Coordinates in cm: 610cm wide × 670cm deep
+ * Origin at top-left (net side)
+ *
+ * Line positions (in cm):
+ * - Net line: y = 0
+ * - Short service line: y = 198
+ * - Long service line (doubles): y = 594 (76cm from back)
+ * - Center line: x = 305 (half of 610)
+ * - Singles sidelines: x = 46 and x = 564
+ */
+const HalfCourtLines = React.memo<{
+  padding: number;
+  width: number;
+  height: number;
+  toSvgX: (x: number) => number;
+  toSvgY: (y: number) => number;
+}>(({ padding, width, height, toSvgX, toSvgY }) => {
+  return (
+    <>
+      {/* Court surface */}
+      <rect
+        x={padding}
+        y={padding}
+        width={width - padding * 2}
+        height={height - padding * 2}
+        fill="#E8F5E9"
+        stroke="#2e7d32"
+        strokeWidth="3"
+      />
+
+      {/* Net line at y=0 (top edge) */}
+      <line
+        x1={padding}
+        y1={toSvgY(0)}
+        x2={width - padding}
+        y2={toSvgY(0)}
+        stroke="#666"
+        strokeWidth="4"
+      />
+      {/* Net label */}
+      <text
+        x={width / 2}
+        y={toSvgY(0) - 8}
+        textAnchor="middle"
+        fontSize="12"
+        fill="#666"
+        fontWeight="bold"
+      >
+        NET
+      </text>
+
+      {/* Short service line at y=198cm */}
+      <line
+        x1={padding}
+        y1={toSvgY(198)}
+        x2={width - padding}
+        y2={toSvgY(198)}
+        stroke="white"
+        strokeWidth="2"
+      />
+
+      {/* Long service line (doubles) at y=594cm (76cm from back) */}
+      <line
+        x1={padding}
+        y1={toSvgY(594)}
+        x2={width - padding}
+        y2={toSvgY(594)}
+        stroke="white"
+        strokeWidth="2"
+      />
+
+      {/* Center line at x=305cm (divides service boxes) */}
+      <line
+        x1={toSvgX(305)}
+        y1={toSvgY(0)}
+        x2={toSvgX(305)}
+        y2={toSvgY(198)}
+        stroke="white"
+        strokeWidth="2"
+      />
+
+      {/* Singles sideline left at x=46cm */}
+      <line
+        x1={toSvgX(46)}
+        y1={padding}
+        x2={toSvgX(46)}
+        y2={height - padding}
+        stroke="white"
+        strokeWidth="2"
+      />
+
+      {/* Singles sideline right at x=564cm (610-46) */}
+      <line
+        x1={toSvgX(564)}
+        y1={padding}
+        x2={toSvgX(564)}
+        y2={height - padding}
+        stroke="white"
+        strokeWidth="2"
+      />
+
+      {/* Back line label */}
+      <text
+        x={width / 2}
+        y={height - padding + 20}
+        textAnchor="middle"
+        fontSize="11"
+        fill="#666"
+      >
+        Back Line (670cm)
+      </text>
+    </>
+  );
+});
+
+HalfCourtLines.displayName = 'HalfCourtLines';
+
+/**
  * OPTIMIZATION: Memoized legend (static content)
  */
 const AccuracyLegend = React.memo(() => {
@@ -398,7 +552,11 @@ AccuracyLegend.displayName = 'AccuracyLegend';
 /**
  * OPTIMIZATION: Memoized live shot info
  */
-const LiveShotInfo = React.memo<{ shot: ShotData }>(({ shot }) => {
+const LiveShotInfo = React.memo<{ shot: ShotData; halfCourt?: boolean }>(({ shot, halfCourt }) => {
+  // Use cm for half-court mode, meters for full-court mode
+  const unit = halfCourt ? 'cm' : 'm';
+  const decimals = halfCourt ? 0 : 1;
+
   return (
     <Box sx={{ mt: 2, p: 2, bgcolor: 'background.paper', borderRadius: 1 }}>
       <Typography variant="h6" gutterBottom>
@@ -418,11 +576,11 @@ const LiveShotInfo = React.memo<{ shot: ShotData }>(({ shot }) => {
         )}
         {shot.velocity && <Chip label={`Velocity: ${shot.velocity.toFixed(1)} km/h`} />}
         <Chip
-          label={`Target: (${shot.targetPosition.x.toFixed(1)}m, ${shot.targetPosition.y.toFixed(1)}m)`}
+          label={`Target: (${shot.targetPosition.x.toFixed(decimals)}${unit}, ${shot.targetPosition.y.toFixed(decimals)}${unit})`}
           variant="outlined"
         />
         <Chip
-          label={`Landing: (${shot.landingPosition.x.toFixed(1)}m, ${shot.landingPosition.y.toFixed(1)}m)`}
+          label={`Landing: (${shot.landingPosition.x.toFixed(decimals)}${unit}, ${shot.landingPosition.y.toFixed(decimals)}${unit})`}
           variant="outlined"
         />
       </Box>
@@ -439,22 +597,24 @@ LiveShotInfo.displayName = 'LiveShotInfo';
 export default React.memo(
   CourtVisualization,
   (prevProps, nextProps) => {
-    // For live mode: re-render if currentShot, targetBox, targetDot, or inBox changes
+    // For live mode: re-render if currentShot, targetBox, targetDot, inBox, or halfCourt changes
     if (prevProps.mode === 'live' && nextProps.mode === 'live') {
       return (
         prevProps.currentShot === nextProps.currentShot &&
         prevProps.targetBox === nextProps.targetBox &&
         prevProps.targetDot === nextProps.targetDot &&
-        prevProps.inBox === nextProps.inBox
+        prevProps.inBox === nextProps.inBox &&
+        prevProps.halfCourt === nextProps.halfCourt
       );
     }
 
-    // For review mode: only re-render if shots array changes
+    // For review mode: only re-render if shots array or halfCourt changes
     if (prevProps.mode === 'review' && nextProps.mode === 'review') {
       return (
         prevProps.shots?.length === nextProps.shots?.length &&
         prevProps.width === nextProps.width &&
-        prevProps.height === nextProps.height
+        prevProps.height === nextProps.height &&
+        prevProps.halfCourt === nextProps.halfCourt
       );
     }
 

@@ -4,6 +4,7 @@ import * as path from 'path';
 interface CVMockOptions {
   count?: number;
   interval?: number;
+  template?: string;  // Template ID for 100% accurate shots (e.g., 'template-001')
 }
 
 export class CVMockHelper {
@@ -20,40 +21,47 @@ export class CVMockHelper {
   /**
    * Send multiple shots to a training session
    * @param sessionId - The session ID to send shots to
-   * @param options - count: number of shots (default 10), interval: milliseconds between shots (default 100)
+   * @param options - count: number of shots, interval: ms between shots, template: template ID for 100% accuracy
    */
   async sendShots(
     sessionId: string,
     options: CVMockOptions = {}
   ): Promise<void> {
-    const { count = 10, interval = 100 } = options;
+    const { count = 10, interval = 100, template } = options;
 
     console.log(
       `Starting CV mock: ${count} shots with ${interval}ms interval for session ${sessionId}`
     );
+    if (template) {
+      console.log(`Using template: ${template} (100% accurate shots on target dots)`);
+    }
 
     // Get RabbitMQ URL from environment (for E2E tests)
     const rabbitmqUrl = process.env.RABBITMQ_URL || 'amqp://badminton:badminton123@localhost:5672';
     console.log(`Using RabbitMQ URL: ${rabbitmqUrl}`);
 
+    // Build command arguments
+    const args = [
+      this.scriptPath,
+      sessionId,
+      '--count',
+      String(count),
+      '--interval-ms',
+      String(interval),
+    ];
+
+    // Add template argument if specified
+    if (template) {
+      args.push('--template', template);
+    }
+
     return new Promise<void>((resolve, reject) => {
-      const python: ChildProcess = spawn(
-        'python3',
-        [
-          this.scriptPath,
-          sessionId,
-          '--count',
-          String(count),
-          '--interval-ms',
-          String(interval),
-        ],
-        {
-          env: {
-            ...process.env,
-            RABBITMQ_URL: rabbitmqUrl,
-          },
-        }
-      );
+      const python: ChildProcess = spawn('python3', args, {
+        env: {
+          ...process.env,
+          RABBITMQ_URL: rabbitmqUrl,
+        },
+      });
 
       let stdout = '';
       let stderr = '';
@@ -105,6 +113,22 @@ export class CVMockHelper {
    */
   async sendShotsFast(sessionId: string, count: number): Promise<void> {
     return this.sendShots(sessionId, { count, interval: 10 });
+  }
+
+  /**
+   * Send 100% accurate shots using template-001
+   * All shots land exactly on target dots for perfect accuracy and in-box rate
+   */
+  async sendAccurateShots(
+    sessionId: string,
+    count: number,
+    interval: number = 50
+  ): Promise<void> {
+    return this.sendShots(sessionId, {
+      count,
+      interval,
+      template: 'template-001',
+    });
   }
 
   /**
