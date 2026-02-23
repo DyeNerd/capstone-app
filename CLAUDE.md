@@ -186,9 +186,58 @@ Frontend (React) ←→ Backend API (Express.js) ←→ PostgreSQL
 - `session_stats_updated` - Updated session statistics
 - `session_ended` - Session ended notification
 
+## Deployment
+
+### Production Architecture
+
+```
+[Vercel CDN]                    [Railway]
+  Static React SPA               Express.js + Socket.IO
+       |                              |
+       +--- HTTPS REST API ---------->+--- Railway PostgreSQL
+       +--- WSS WebSocket ----------->+--- Railway Redis
+                                      +--- CloudAMQP (optional)
+```
+
+- **Frontend:** Hosted on Vercel (static SPA with automatic HTTPS and CDN)
+- **Backend:** Hosted on Railway (Docker container with persistent process for Socket.IO)
+- **Database:** Railway managed PostgreSQL (auto-injected `DATABASE_URL`)
+- **Cache:** Railway managed Redis (auto-injected `REDIS_URL`)
+- **Message Broker:** CloudAMQP free tier (optional, for CV component integration)
+
+### Deployment-Specific Code
+
+- **`app.ts`:** `trust proxy` enabled for Railway's reverse proxy; CORS supports comma-separated origins via `FRONTEND_URL`
+- **`config/database.ts`:** Re-creates DataSource in `initializeDatabase()` to pick up Railway-injected env vars; SSL enabled in production
+- **`config/redis.ts`:** Re-creates client in `initializeRedis()` for same reason
+- **`config/broker.ts`:** Getter for URL so RabbitMQ reads env var at access time
+- **`Dockerfile`:** Multi-stage build (builder + production) to exclude devDependencies
+
+### Railway Environment Variables
+
+| Variable | Value |
+|---|---|
+| `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` (auto-linked) |
+| `REDIS_URL` | `${{Redis.REDIS_URL}}` (auto-linked) |
+| `NODE_ENV` | `production` |
+| `JWT_SECRET` | Generated secret |
+| `FRONTEND_URL` | Vercel app URL |
+| `RABBITMQ_URL` | CloudAMQP URL (optional) |
+
+> `PORT` is auto-injected by Railway.
+
+### Vercel Environment Variables
+
+| Variable | Value |
+|---|---|
+| `REACT_APP_API_URL` | `https://<railway-url>/api` |
+| `REACT_APP_SOCKET_URL` | `https://<railway-url>` |
+
+> These are baked at build time by Create React App.
+
 ## Development Setup
 
-### Start Backend
+### Start Backend (Local)
 ```bash
 cd badminton-backend
 docker-compose up -d
@@ -196,14 +245,14 @@ docker-compose up -d
 # RabbitMQ UI: http://localhost:15672 (user: badminton, pass: badminton123)
 ```
 
-### Start Frontend
+### Start Frontend (Local)
 ```bash
 cd badminton-frontend
 npm start
 # App: http://localhost:3000
 ```
 
-### Environment Variables
+### Environment Variables (Local)
 
 **Backend (.env):**
 ```env
@@ -498,10 +547,11 @@ Quick Start (30 minutes for 99.6% backend gain):
 
 ---
 
-**Last Updated:** 2026-01-26
-**Project Status:** Production-ready, fully functional, performance-optimized
+**Last Updated:** 2026-02-23
+**Project Status:** Production-ready, deployed, performance-optimized
+**Deployment:** Frontend on Vercel, Backend on Railway (PostgreSQL + Redis)
 **Backend Status:** 100% Complete + Optimized (99.6% performance gain implemented)
 **Frontend Status:** 100% Complete + Optimized (70% fewer renders implemented)
-**Testing Status:** 96 tests implemented (71 backend + 25 frontend, 100% pass rate) + E2E suite with Playwright
+**Testing Status:** 151 backend tests + 25 frontend tests (100% pass rate) + E2E suite with Playwright
 **E2E Testing:** Complete end-to-end test infrastructure with Docker isolation and mock CV component
 **Type Safety:** All `any` types removed, full TypeScript compliance

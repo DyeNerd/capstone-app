@@ -57,21 +57,26 @@ export class SessionController {
       const { sessionId } = req.params;
       const { sessionNotes, sessionRating } = req.body;
 
-      const session = await sessionService.stopSession(sessionId, {
-        endTime: new Date(),
+      // Check current status before stopping
+      const existing = await sessionService.getSessionById(sessionId);
+      const wasActive = existing.status === 'active';
+
+      await sessionService.stopSession(sessionId, {
+        endTime: wasActive ? new Date() : (existing.end_time ?? new Date()),
         status: 'completed',
         sessionNotes,
         sessionRating,
       });
 
-      // Send stop signal to CV component
-      await brokerService.publishSessionStop({
-        sessionId,
-        timestamp: new Date().toISOString(),
-      });
+      // Only send stop signal and close WebSocket if session was active
+      if (wasActive) {
+        await brokerService.publishSessionStop({
+          sessionId,
+          timestamp: new Date().toISOString(),
+        });
 
-      // Close WebSocket room
-      socketHandler.emitSessionEnded(sessionId);
+        socketHandler.emitSessionEnded(sessionId);
+      }
 
       // Get final statistics
       const sessionWithStats = await sessionService.getSessionById(sessionId, ['shots']);

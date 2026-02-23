@@ -68,7 +68,7 @@ npm run dev
 - GET `/api/sessions` - List sessions
 - GET `/api/sessions/:id` - Get session with shots
 
-## Frontend (IN PROGRESS ⚠️)
+## Frontend (COMPLETED ✅)
 
 ### Stack
 - React 19 + TypeScript
@@ -78,46 +78,65 @@ npm run dev
 - Socket.IO Client
 - Context API for state management
 
-### Completed Components
-✅ Project structure created
-✅ Dependencies installed
-✅ TypeScript types defined
-✅ API utility functions
-✅ AuthContext (authentication management)
-✅ TrainingContext (training state + WebSocket)
-
-### Components Needed (TO DO)
-
-**Authentication Components:**
-- [ ] Login.tsx
-- [ ] Register.tsx
-- [ ] ProtectedRoute.tsx
-
-**Main Components:**
-- [ ] Navigation.tsx
-- [ ] TrainingControl.tsx (with live court visualization)
-- [ ] CourtVisualization.tsx (SVG badminton court)
-- [ ] PerformanceDashboard.tsx
-- [ ] SessionDetail.tsx (detailed session view)
-- [ ] AthleteManagement.tsx
-
-**App Setup:**
-- [ ] App.tsx (routing + theme)
-- [ ] index.tsx (providers)
+### Features Implemented
+✅ JWT Authentication (Login, Register, ProtectedRoute)
+✅ Navigation with responsive layout
+✅ Training Control with live court visualization
+✅ SVG Court Visualization (full-court and half-court modes)
+✅ Target Templates with cycling positions
+✅ Performance Dashboard with session history
+✅ Session Detail with shot-by-shot review
+✅ Athlete Management (CRUD)
+✅ Real-time WebSocket updates
+✅ Memoized contexts and components (useCallback, useMemo)
 
 ### Running the Frontend
 
 ```bash
 cd badminton-frontend
-
-# Install dependencies (already done)
 npm install
-
-# Start development server
 npm start
-
-# App will be available at http://localhost:3000
+# App: http://localhost:3000
 ```
+
+## Deployment
+
+The application is deployed to the cloud using **Vercel** (frontend) and **Railway** (backend).
+
+### Architecture
+
+```
+[Vercel CDN]                    [Railway]
+  Static React SPA               Express.js + Socket.IO
+       |                              |
+       +--- HTTPS REST API ---------->+--- Railway PostgreSQL
+       +--- WSS WebSocket ----------->+--- Railway Redis
+                                      +--- CloudAMQP (optional)
+```
+
+- **Frontend:** Vercel — automatic builds from GitHub, CDN-hosted SPA with HTTPS
+- **Backend:** Railway — Docker container with managed PostgreSQL and Redis
+- **Message Broker:** CloudAMQP free tier (for CV component integration)
+
+### Deploying Changes
+
+1. Push to `main` branch on GitHub
+2. Vercel auto-rebuilds the frontend
+3. Railway auto-redeploys the backend
+
+### Environment Variables
+
+**Railway (backend):**
+- `DATABASE_URL` — auto-linked from Railway PostgreSQL
+- `REDIS_URL` — auto-linked from Railway Redis
+- `NODE_ENV` — `production`
+- `JWT_SECRET` — generated secret
+- `FRONTEND_URL` — Vercel app URL
+- `RABBITMQ_URL` — CloudAMQP URL (optional)
+
+**Vercel (frontend, baked at build time):**
+- `REACT_APP_API_URL` — Railway backend URL + `/api`
+- `REACT_APP_SOCKET_URL` — Railway backend URL
 
 ## System Integration
 
@@ -176,7 +195,7 @@ REACT_APP_SOCKET_URL=http://localhost:5000
 - Redis (if not using Docker)
 - RabbitMQ (if not using Docker)
 
-### Quick Start
+### Quick Start (Local Development)
 
 1. **Start Backend:**
 ```bash
@@ -184,7 +203,7 @@ cd badminton-backend
 docker-compose up -d
 ```
 
-2. **Start Frontend (once components are complete):**
+2. **Start Frontend:**
 ```bash
 cd badminton-frontend
 npm start
@@ -206,58 +225,26 @@ npm start
 - **rallies** - Rally sequences
 - **rally_events** - Detailed rally events
 
-## Next Steps
-
-### To Complete Frontend:
-
-1. **Create Authentication Pages:**
-   - Implement Login component with form validation
-   - Implement Register component with password strength indicator
-   - Create ProtectedRoute wrapper
-
-2. **Create Main App:**
-   - Set up App.tsx with routing and MUI theme
-   - Configure React Router
-   - Wrap with AuthProvider and TrainingProvider
-
-3. **Create Training Components:**
-   - TrainingControl with athlete selection and session controls
-   - CourtVisualization (SVG) showing real-time shot data
-   - WebSocket integration for live updates
-
-4. **Create Performance Components:**
-   - PerformanceDashboard with charts and statistics
-   - SessionDetail page showing all shots on court
-   - Training history table
-
-5. **Create Athlete Management:**
-   - Athlete list/grid view
-   - Create/Edit athlete form dialog
-   - Delete confirmation
-
-6. **Create Navigation:**
-   - AppBar with navigation links
-   - User menu with logout
-   - Responsive mobile menu
-
 ## Features
 
 ### Current Features
-✅ User authentication (JWT)
-✅ Athlete management
-✅ Training session control
-✅ Real-time shot data via WebSocket
-✅ Message broker integration
-✅ Database persistence
+✅ User authentication (JWT with Redis sessions)
+✅ Athlete management (CRUD)
+✅ Training session control with target templates
+✅ Real-time shot tracking via WebSocket
+✅ SVG court visualization (full-court and half-court)
+✅ Performance dashboard with session history
+✅ Session detail with shot-by-shot review
+✅ Message broker integration (RabbitMQ/CloudAMQP)
+✅ Database persistence (PostgreSQL)
 ✅ Docker development environment
+✅ Cloud deployment (Vercel + Railway)
 
 ### Planned Features
-- [ ] Court visualization with shot heatmaps
-- [ ] Performance analytics with charts
-- [ ] Session replay and analysis
-- [ ] Advanced statistics
+- [ ] Chart.js visualizations (accuracy trends, shot counts)
+- [ ] Shot heatmap overlay on court
+- [ ] Session replay (animate shots in sequence)
 - [ ] Export reports (PDF/CSV)
-- [ ] Mobile responsive design
 - [ ] Rally analysis
 - [ ] Multi-court support
 
@@ -294,16 +281,7 @@ MIT
 
 ## Implementation Status
 
-**Backend:** 100% Complete ✅
-**Frontend:** 40% Complete ⚠️
-
-### Time Estimate for Remaining Frontend Work:
-- Authentication components: 2-3 hours
-- Training control + court viz: 4-5 hours
-- Performance dashboard: 3-4 hours
-- Athlete management: 2-3 hours
-- Navigation + App setup: 1-2 hours
-**Total:** 12-17 hours of development time
-
-The foundational work is complete. The remaining work is primarily UI components following the established patterns.
+**Backend:** 100% Complete ✅ (deployed on Railway)
+**Frontend:** 100% Complete ✅ (deployed on Vercel)
+**Deployment:** Production ✅ (Vercel + Railway + CloudAMQP)
 
