@@ -1,13 +1,10 @@
-import dotenv from 'dotenv';
+import 'dotenv/config';
 import { createServer } from 'http';
 import app from './app';
 import { initializeDatabase } from './config/database';
 import { initializeRedis } from './config/redis';
 import { brokerService } from './services/broker.service';
 import { socketHandler } from './websocket/socket.handler';
-
-// Load environment variables
-dotenv.config();
 
 const PORT = process.env.PORT || 5000;
 
