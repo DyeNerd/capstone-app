@@ -65,7 +65,6 @@ When a coach starts a training session, the backend publishes this message.
 {
   "sessionId": "550e8400-e29b-41d4-a716-446655440000",
   "athleteId": "123e4567-e89b-12d3-a456-426614174000",
-  "targetZone": null,
   "timestamp": "2025-02-23T10:30:00.000Z"
 }
 ```
@@ -74,7 +73,7 @@ When a coach starts a training session, the backend publishes this message.
 |-------|------|-------------|
 | `sessionId` | string (UUID) | **Critical** -- must be included in every shot message |
 | `athleteId` | string (UUID) | Informational, can be ignored by CV |
-| `targetZone` | string or null | Reserved for future use |
+| `targetZone` | string (optional) | Currently unused, reserved for future use. Will be absent from the message. |
 | `timestamp` | string (ISO 8601) | When the session started |
 
 **CV action:** Start the camera feed / shot detection loop. Store the `sessionId` for tagging shots.
@@ -116,7 +115,7 @@ Each time the CV detects a shuttlecock landing, publish this message.
   "timestamp": "2025-02-23T10:30:05.123Z",
   "landingPosition": {
     "x": 305,
-    "y": 335
+    "y": -335
   },
   "velocity": 85.5,
   "detectionConfidence": 0.95
@@ -152,10 +151,10 @@ The CV component must output landing positions in **half-court centimeters**.
     │    │            │    │  (net to baseline)
     │    │            │    │
     │    └────────────┘    │
-    │              (610,670)│
+    │             (610,-670)│
     │                      │
     └──────────────────────┘
-          BASELINE (y = 670)
+        BASELINE (y = -670)
 ```
 
 | Axis | Range | Direction |
