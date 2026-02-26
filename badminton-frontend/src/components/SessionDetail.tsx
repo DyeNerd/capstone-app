@@ -126,10 +126,27 @@ const SessionDetail: React.FC = () => {
       </Breadcrumbs>
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-        <Button startIcon={<ArrowBack />} onClick={() => navigate('/performance')}>
+        <Button
+          startIcon={<ArrowBack />}
+          onClick={() => navigate('/performance')}
+          sx={{ py: 0.75 }}
+        >
           Back
         </Button>
-        <Typography variant="h4">🏸 Session Details</Typography>
+        <Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <SportsTennis sx={{ color: '#00E5A0', fontSize: 20 }} />
+            <Typography sx={{
+              fontFamily: '"Bebas Neue", cursive',
+              fontSize: { xs: '1.6rem', md: '2rem' },
+              letterSpacing: '0.06em',
+              color: '#EFF2F8',
+              lineHeight: 1,
+            }}>
+              SESSION DETAILS
+            </Typography>
+          </Box>
+        </Box>
       </Box>
 
       {/* Session Header */}
@@ -307,7 +324,7 @@ const SessionDetail: React.FC = () => {
               </Box>
 
               {/* Current Shot Details */}
-              <Box sx={{ mt: 3, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+              <Box sx={{ mt: 3, p: 2, bgcolor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 1 }}>
                 <Typography variant="subtitle2" gutterBottom>
                   Shot #{session.shots[selectedShotIndex].shot_number} Details
                 </Typography>
@@ -414,7 +431,7 @@ const SessionDetail: React.FC = () => {
       ) : (
         <Card>
           <CardContent>
-            <Box sx={{ textAlign: 'center', py: 8, bgcolor: 'grey.100', borderRadius: 1 }}>
+            <Box sx={{ textAlign: 'center', py: 8, bgcolor: 'rgba(0,0,0,0.15)', borderRadius: 1 }}>
               <Typography color="text.secondary">No shot data available for this session</Typography>
             </Box>
           </CardContent>

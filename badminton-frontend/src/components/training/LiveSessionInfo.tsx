@@ -58,55 +58,75 @@ const LiveSessionInfo: React.FC<LiveSessionInfoProps> = ({
   }, [session.total_shots, session.successful_shots]);
 
   return (
-    <Card>
+    <Card sx={{
+      borderLeft: '3px solid #00E5A0',
+      position: 'relative',
+      overflow: 'hidden',
+      '&::before': {
+        content: '""',
+        position: 'absolute',
+        top: 0, left: 0, right: 0, bottom: 0,
+        background: 'radial-gradient(ellipse at top left, rgba(0,229,160,0.07) 0%, transparent 60%)',
+        pointerEvents: 'none',
+      },
+    }}>
       <CardContent>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-          <Timer />
-          <Typography variant="h6">Session Info</Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2.5 }}>
+          <Timer sx={{ fontSize: 18, color: '#00E5A0' }} />
+          <Typography sx={{ fontWeight: 700, fontSize: '0.9rem', letterSpacing: '0.01em' }}>
+            Live Session
+          </Typography>
         </Box>
 
         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2 }}>
           <Box>
-            <Typography variant="body2" color="text.secondary">
+            <Typography sx={{ fontSize: '0.7rem', color: '#8B9EC4', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600, mb: 0.25 }}>
               Duration
             </Typography>
-            <Typography variant="h6">{duration}</Typography>
+            <Typography sx={{ fontFamily: '"Bebas Neue", cursive', fontSize: '1.8rem', color: '#EFF2F8', lineHeight: 1, letterSpacing: '0.04em' }}>
+              {duration}
+            </Typography>
           </Box>
 
           <Box>
-            <Typography variant="body2" color="text.secondary">
+            <Typography sx={{ fontSize: '0.7rem', color: '#8B9EC4', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600, mb: 0.25 }}>
               Total Shots
             </Typography>
-            <Typography variant="h6">{session.total_shots}</Typography>
-          </Box>
-
-          <Box>
-            <Typography variant="body2" color="text.secondary">
-              Successful Shots
+            <Typography sx={{ fontFamily: '"Bebas Neue", cursive', fontSize: '1.8rem', color: '#00E5A0', lineHeight: 1, letterSpacing: '0.04em' }}>
+              {session.total_shots}
             </Typography>
-            <Typography variant="h6">{session.successful_shots}</Typography>
           </Box>
 
           <Box>
-            <Typography variant="body2" color="text.secondary">
+            <Typography sx={{ fontSize: '0.7rem', color: '#8B9EC4', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600, mb: 0.25 }}>
+              On Target
+            </Typography>
+            <Typography sx={{ fontFamily: '"Bebas Neue", cursive', fontSize: '1.8rem', color: '#F59E0B', lineHeight: 1, letterSpacing: '0.04em' }}>
+              {session.successful_shots}
+            </Typography>
+          </Box>
+
+          <Box>
+            <Typography sx={{ fontSize: '0.7rem', color: '#8B9EC4', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600, mb: 0.25 }}>
               Success Rate
             </Typography>
-            <Typography variant="h6">{successRate}%</Typography>
+            <Typography sx={{ fontFamily: '"Bebas Neue", cursive', fontSize: '1.8rem', color: '#A78BFA', lineHeight: 1, letterSpacing: '0.04em' }}>
+              {successRate}%
+            </Typography>
           </Box>
         </Box>
 
-        {/* Template Position Info */}
         {templateName && totalPositions !== undefined && (
-          <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+          <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-              <GpsFixed fontSize="small" color="primary" />
-              <Typography variant="body2" color="text.secondary">
-                Template: <strong>{templateName}</strong>
+              <GpsFixed fontSize="small" sx={{ color: '#A78BFA', fontSize: 15 }} />
+              <Typography sx={{ fontSize: '0.78rem', color: '#8B9EC4' }}>
+                Template: <span style={{ color: '#EFF2F8', fontWeight: 600 }}>{templateName}</span>
               </Typography>
             </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
               <Chip
-                label={`Position ${(currentPositionIndex ?? 0) + 1} of ${totalPositions}`}
+                label={`Position ${(currentPositionIndex ?? 0) + 1} / ${totalPositions}`}
                 color="primary"
                 variant="outlined"
                 size="small"

@@ -121,16 +121,38 @@ const AthleteManagement: React.FC = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: 1200, margin: '0 auto', padding: 2 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Typography variant="h4">👥 Athlete Management</Typography>
+    <Box sx={{ maxWidth: 1200, margin: '0 auto', padding: { xs: 2, md: 3 } }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 4, flexWrap: 'wrap', gap: 2 }}>
+        <Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.5 }}>
+            <PersonAdd sx={{ color: '#60A5FA', fontSize: 22 }} />
+            <Typography sx={{
+              fontFamily: '"Bebas Neue", cursive',
+              fontSize: { xs: '1.8rem', md: '2.2rem' },
+              letterSpacing: '0.06em',
+              color: '#EFF2F8',
+              lineHeight: 1,
+            }}>
+              ATHLETE MANAGEMENT
+            </Typography>
+          </Box>
+          <Typography sx={{ color: '#8B9EC4', fontSize: '0.85rem', ml: 4 }}>
+            Manage your team of athletes
+          </Typography>
+        </Box>
         <Button
           variant="contained"
           startIcon={<PersonAdd />}
           onClick={() => handleOpenDialog()}
-          size="large"
+          sx={{
+            fontFamily: '"Bebas Neue", cursive',
+            fontSize: '0.95rem',
+            letterSpacing: '0.08em',
+            px: 2.5,
+            py: 1.25,
+          }}
         >
-          Create New Athlete
+          NEW ATHLETE
         </Button>
       </Box>
 

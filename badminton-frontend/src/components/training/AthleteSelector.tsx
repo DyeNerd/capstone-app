@@ -59,25 +59,28 @@ const AthleteSelector: React.FC<AthleteSelectorProps> = ({
   };
 
   return (
-    <Card sx={{ mb: 3 }}>
+    <Card>
       <CardContent>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Person />
-            <Typography variant="h6">Athlete Selection</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Person sx={{ fontSize: 18, color: '#60A5FA' }} />
+            <Typography sx={{ fontWeight: 700, fontSize: '0.9rem', letterSpacing: '0.01em' }}>
+              Athlete Selection
+            </Typography>
           </Box>
           <Button
             size="small"
             variant="outlined"
-            color="success"
-            startIcon={<AddCircle />}
+            color="primary"
+            startIcon={<AddCircle fontSize="small" />}
             onClick={onNavigateToAthletes}
+            sx={{ fontSize: '0.78rem', py: 0.5, px: 1.5 }}
           >
             New Athlete
           </Button>
         </Box>
 
-        <FormControl fullWidth>
+        <FormControl fullWidth size="small">
           <InputLabel>Select Athlete</InputLabel>
           <Select
             value={selectedAthlete?.id || ''}
@@ -98,13 +101,6 @@ const AthleteSelector: React.FC<AthleteSelectorProps> = ({
             ))}
           </Select>
         </FormControl>
-
-        {selectedAthlete && (
-          <Alert severity="info" sx={{ mt: 2 }}>
-            Selected: <strong>{selectedAthlete.athlete_name}</strong> ({selectedAthlete.skill_level}{' '}
-            level)
-          </Alert>
-        )}
 
         {athletes.length === 0 && (
           <Alert severity="warning" sx={{ mt: 2 }}>

@@ -34,14 +34,16 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   onTemplateChange,
 }) => {
   return (
-    <Card sx={{ mb: 3 }}>
+    <Card>
       <CardContent>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-          <GridOn />
-          <Typography variant="h6">Target Template</Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+          <GridOn sx={{ fontSize: 18, color: '#A78BFA' }} />
+          <Typography sx={{ fontWeight: 700, fontSize: '0.9rem', letterSpacing: '0.01em' }}>
+            Target Template
+          </Typography>
         </Box>
 
-        <FormControl fullWidth>
+        <FormControl fullWidth size="small">
           <InputLabel>Select Template *</InputLabel>
           <Select
             value={selectedTemplate?.id || ''}

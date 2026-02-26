@@ -86,9 +86,9 @@ const CourtVisualization: React.FC<CourtVisualizationProps> = ({
   // OPTIMIZATION: Memoize color function to avoid recreation
   const getShotColor = useCallback((accuracyCm: number | string): string => {
     const accuracy = Number(accuracyCm);
-    if (accuracy < 20) return '#4caf50'; // Green - excellent
-    if (accuracy < 50) return '#ff9800'; // Orange - good
-    return '#f44336'; // Red - needs improvement
+    if (accuracy < 20) return '#00E5A0'; // Court green - excellent
+    if (accuracy < 50) return '#FBBF24'; // Amber - good
+    return '#F87171'; // Red - needs improvement
   }, []);
 
   // OPTIMIZATION: Memoize rendered shots to avoid re-rendering identical data
@@ -120,13 +120,13 @@ const CourtVisualization: React.FC<CourtVisualizationProps> = ({
 
           {/* Target position */}
           <g>
-            <circle cx={targetX} cy={targetY} r="8" fill="none" stroke="#1976d2" strokeWidth="2" />
+            <circle cx={targetX} cy={targetY} r="8" fill="none" stroke="#60A5FA" strokeWidth="2" />
             <line
               x1={targetX - 10}
               y1={targetY}
               x2={targetX + 10}
               y2={targetY}
-              stroke="#1976d2"
+              stroke="#60A5FA"
               strokeWidth="2"
             />
             <line
@@ -134,7 +134,7 @@ const CourtVisualization: React.FC<CourtVisualizationProps> = ({
               y1={targetY - 10}
               x2={targetX}
               y2={targetY + 10}
-              stroke="#1976d2"
+              stroke="#60A5FA"
               strokeWidth="2"
             />
           </g>
@@ -164,9 +164,9 @@ const CourtVisualization: React.FC<CourtVisualizationProps> = ({
         y={toSvgY(targetBox.y1)}
         width={Math.abs(toSvgX(targetBox.x2) - toSvgX(targetBox.x1))}
         height={Math.abs(toSvgY(targetBox.y2) - toSvgY(targetBox.y1))}
-        fill="#1976d2"
+        fill="#60A5FA"
         fillOpacity="0.15"
-        stroke="#1976d2"
+        stroke="#60A5FA"
         strokeWidth="2"
         strokeDasharray="4,4"
       />
@@ -188,7 +188,7 @@ const CourtVisualization: React.FC<CourtVisualizationProps> = ({
 
     // Determine landing color based on inBox status (if available)
     const landingColor = currentShot.inBox !== undefined
-      ? (currentShot.inBox ? '#4caf50' : '#f44336')  // Green if in box, Red if outside
+      ? (currentShot.inBox ? '#00E5A0' : '#F87171')  // Green if in box, Red if outside
       : getShotColor(currentShot.accuracy);           // Fallback to accuracy-based color
 
     return (
@@ -200,9 +200,9 @@ const CourtVisualization: React.FC<CourtVisualizationProps> = ({
             y={toSvgY(targetBox.y1)}
             width={Math.abs(toSvgX(targetBox.x2) - toSvgX(targetBox.x1))}
             height={Math.abs(toSvgY(targetBox.y2) - toSvgY(targetBox.y1))}
-            fill="#1976d2"
+            fill="#60A5FA"
             fillOpacity="0.15"
-            stroke="#1976d2"
+            stroke="#60A5FA"
             strokeWidth="2"
             strokeDasharray="4,4"
           />
@@ -215,7 +215,7 @@ const CourtVisualization: React.FC<CourtVisualizationProps> = ({
             cy={toSvgY(dotY)}
             r="10"
             fill="none"
-            stroke="#1976d2"
+            stroke="#60A5FA"
             strokeWidth="3"
           />
           <line
@@ -223,7 +223,7 @@ const CourtVisualization: React.FC<CourtVisualizationProps> = ({
             y1={toSvgY(dotY)}
             x2={toSvgX(dotX) + 12}
             y2={toSvgY(dotY)}
-            stroke="#1976d2"
+            stroke="#60A5FA"
             strokeWidth="3"
           />
           <line
@@ -231,7 +231,7 @@ const CourtVisualization: React.FC<CourtVisualizationProps> = ({
             y1={toSvgY(dotY) - 12}
             x2={toSvgX(dotX)}
             y2={toSvgY(dotY) + 12}
-            stroke="#1976d2"
+            stroke="#60A5FA"
             strokeWidth="3"
           />
         </g>
@@ -281,7 +281,7 @@ const CourtVisualization: React.FC<CourtVisualizationProps> = ({
           x={toSvgX(landingX) + 15}
           y={toSvgY(landingY)}
           fontSize="12"
-          fill="#333"
+          fill="#EFF2F8"
           fontWeight="bold"
         >
           #{currentShot.shotNumber}
@@ -302,17 +302,17 @@ const CourtVisualization: React.FC<CourtVisualizationProps> = ({
           y={toSvgY(pos.box.y1)}
           width={Math.abs(toSvgX(pos.box.x2) - toSvgX(pos.box.x1))}
           height={Math.abs(toSvgY(pos.box.y2) - toSvgY(pos.box.y1))}
-          fill="rgba(255, 235, 59, 0.4)"
-          stroke="#ffc107"
-          strokeWidth={3}
+          fill="rgba(245,158,11,0.2)"
+          stroke="#F59E0B"
+          strokeWidth={2}
         />
         {/* Target dot */}
         <circle
           cx={toSvgX(pos.dot.x)}
           cy={toSvgY(pos.dot.y)}
           r={8}
-          fill="#f44336"
-          stroke="#fff"
+          fill="#F87171"
+          stroke="#EFF2F8"
           strokeWidth={2}
         />
         {/* Position label in center of box */}
@@ -321,7 +321,7 @@ const CourtVisualization: React.FC<CourtVisualizationProps> = ({
           y={(toSvgY(pos.box.y1) + toSvgY(pos.box.y2)) / 2}
           textAnchor="middle"
           dominantBaseline="middle"
-          fill="#000"
+          fill="#EFF2F8"
           fontSize="16"
           fontWeight="bold"
         >
@@ -337,7 +337,7 @@ const CourtVisualization: React.FC<CourtVisualizationProps> = ({
         ref={svgRef}
         width={width}
         height={height}
-        style={{ border: '2px solid #e0e0e0', borderRadius: '8px', background: '#f5f5f5' }}
+        style={{ border: 'none', borderRadius: '8px', background: 'transparent' }}
       >
         {/* OPTIMIZATION: Static court lines extracted to memoized component */}
         {halfCourt ? (
@@ -399,8 +399,8 @@ const CourtLines = React.memo<{
         y={padding}
         width={width - padding * 2}
         height={height - padding * 2}
-        fill="#E8F5E9"
-        stroke="#2e7d32"
+        fill="#0A2218"
+        stroke="#1D8A4E"
         strokeWidth="3"
       />
 
@@ -410,7 +410,7 @@ const CourtLines = React.memo<{
         y1={padding}
         x2={toSvgX(COURT_LENGTH / 2)}
         y2={height - padding}
-        stroke="#666"
+        stroke="#F59E0B"
         strokeWidth="3"
         strokeDasharray="5,5"
       />
@@ -511,8 +511,8 @@ const HalfCourtLines = React.memo<{
         y={padding}
         width={width - padding * 2}
         height={height - padding * 2}
-        fill="#E8F5E9"
-        stroke="#2e7d32"
+        fill="#0A2218"
+        stroke="#1D8A4E"
         strokeWidth="3"
       />
 
@@ -522,7 +522,7 @@ const HalfCourtLines = React.memo<{
         y1={toSvgY(0)}
         x2={width - padding}
         y2={toSvgY(0)}
-        stroke="#666"
+        stroke="#F59E0B"
         strokeWidth="4"
       />
       {/* Net label */}
@@ -531,7 +531,7 @@ const HalfCourtLines = React.memo<{
         y={toSvgY(0) - 8}
         textAnchor="middle"
         fontSize="12"
-        fill="#666"
+        fill="#F59E0B"
         fontWeight="bold"
       >
         NET
@@ -593,7 +593,7 @@ const HalfCourtLines = React.memo<{
         y={height - padding + 20}
         textAnchor="middle"
         fontSize="11"
-        fill="#666"
+        fill="#8B9EC4"
       >
         Back Line (670cm)
       </text>
@@ -608,18 +608,18 @@ HalfCourtLines.displayName = 'HalfCourtLines';
  */
 const AccuracyLegend = React.memo(() => {
   return (
-    <Box sx={{ mt: 2, display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Box sx={{ width: 16, height: 16, borderRadius: '50%', bgcolor: '#4caf50' }} />
-        <Typography variant="caption">&lt; 20cm (Excellent)</Typography>
+    <Box sx={{ mt: 2, display: 'flex', gap: 2.5, justifyContent: 'center', flexWrap: 'wrap' }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+        <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#00E5A0', boxShadow: '0 0 6px rgba(0,229,160,0.6)' }} />
+        <Typography sx={{ fontSize: '0.72rem', color: '#8B9EC4' }}>&lt; 20cm (Excellent)</Typography>
       </Box>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Box sx={{ width: 16, height: 16, borderRadius: '50%', bgcolor: '#ff9800' }} />
-        <Typography variant="caption">20-50cm (Good)</Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+        <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#FBBF24', boxShadow: '0 0 6px rgba(251,191,36,0.6)' }} />
+        <Typography sx={{ fontSize: '0.72rem', color: '#8B9EC4' }}>20-50cm (Good)</Typography>
       </Box>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Box sx={{ width: 16, height: 16, borderRadius: '50%', bgcolor: '#f44336' }} />
-        <Typography variant="caption">&gt; 50cm (Needs Improvement)</Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+        <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#F87171', boxShadow: '0 0 6px rgba(248,113,113,0.6)' }} />
+        <Typography sx={{ fontSize: '0.72rem', color: '#8B9EC4' }}>&gt; 50cm (Needs Work)</Typography>
       </Box>
     </Box>
   );
@@ -636,11 +636,11 @@ const LiveShotInfo = React.memo<{ shot: ShotData; halfCourt?: boolean }>(({ shot
   const decimals = halfCourt ? 0 : 1;
 
   return (
-    <Box sx={{ mt: 2, p: 2, bgcolor: 'background.paper', borderRadius: 1 }}>
-      <Typography variant="h6" gutterBottom>
-        Current Shot: #{shot.shotNumber}
+    <Box sx={{ mt: 2, p: 2, bgcolor: 'rgba(255,255,255,0.03)', borderRadius: 1, border: '1px solid rgba(255,255,255,0.06)' }}>
+      <Typography sx={{ fontWeight: 700, fontSize: '0.875rem', mb: 1.5 }}>
+        Shot #{shot.shotNumber}
       </Typography>
-      <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+      <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
         <Chip
           label={`Accuracy: ${shot.accuracy.toFixed(1)} cm`}
           color={shot.accuracy < 20 ? 'success' : shot.accuracy < 50 ? 'warning' : 'error'}

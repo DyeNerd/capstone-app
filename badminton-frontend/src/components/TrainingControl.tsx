@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Box, Typography } from '@mui/material';
+import { PlayArrow } from '@mui/icons-material';
 import { useTraining } from '../context/TrainingContext';
 import { useNavigate } from 'react-router-dom';
 import { TrainingSession, ShotData } from '../types';
@@ -43,40 +44,30 @@ const TrainingControl: React.FC = () => {
 
   const navigate = useNavigate();
 
-  // Local state for save dialog
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [sessionToSave, setSessionToSave] = useState<TrainingSession | null>(null);
   const [fetchingLatestData, setFetchingLatestData] = useState(false);
 
-  // Load athletes and templates on mount
   useEffect(() => {
     loadAthletes();
     loadTemplates();
   }, [loadAthletes, loadTemplates]);
 
-  // OPTIMIZATION: Memoize court dimensions to avoid recalculation
   const courtDimensions = useMemo(() => {
     return {
       width: Math.min(700, window.innerWidth - 100),
       height: 450,
     };
-  }, []); // Only calculate once on mount
+  }, []);
 
-  // Compute current target position from template (in cm, for half-court mode)
-  // No conversion needed - CourtVisualization handles cm directly in halfCourt mode
   const currentTarget = useMemo(() => {
     if (!selectedTemplate || selectedTemplate.positions.length === 0) {
       return null;
     }
     const position = selectedTemplate.positions[currentTargetIndex % selectedTemplate.positions.length];
-    // Pass coordinates directly in cm (half-court coordinate system)
-    return {
-      box: position.box,
-      dot: position.dot,
-    };
+    return { box: position.box, dot: position.dot };
   }, [selectedTemplate, currentTargetIndex]);
 
-  // Handle template selection
   const handleTemplateChange = useCallback(
     (templateId: string) => {
       const template = templates.find((t) => t.id === templateId);
@@ -85,7 +76,6 @@ const TrainingControl: React.FC = () => {
     [templates, selectTemplate]
   );
 
-  // OPTIMIZATION: useCallback for stable function references
   const handleAthleteChange = useCallback(
     (athleteId: string) => {
       const athlete = athletes.find((a) => a.id === athleteId);
@@ -101,26 +91,18 @@ const TrainingControl: React.FC = () => {
       await startTraining();
     } catch (err: unknown) {
       console.error('Failed to start training:', err);
-      // Error handled in TrainingControls component
     }
   }, [startTraining]);
 
   const handleStopTraining = useCallback(async () => {
     try {
-      // Store current session before stopping
       setSessionToSave(currentSession);
-
-      // Show dialog immediately for better UX
       setSaveDialogOpen(true);
-
-      // Stop the training
       await stopTraining();
 
-      // Fetch latest data in background
       if (currentSession?.id) {
         setFetchingLatestData(true);
         const { api } = await import('../utils/api');
-
         api
           .getSession(currentSession.id)
           .then((result) => {
@@ -149,8 +131,6 @@ const TrainingControl: React.FC = () => {
           throw new Error('No session to save');
         }
 
-        // Session is already stopped in backend by stopTraining()
-        // Only update notes/rating if provided
         if (notes || rating) {
           const { api } = await import('../utils/api');
           await api.stopSession(sessionToSave.id, {
@@ -159,18 +139,13 @@ const TrainingControl: React.FC = () => {
           });
         }
 
-        // Cleanup local state
         setSaveDialogOpen(false);
         setSessionToSave(null);
-
-        // Clear context state (session already stopped, just cleanup)
         await saveSession();
-
-        // Navigate to performance page
         setTimeout(() => navigate('/performance'), 500);
       } catch (err: unknown) {
         console.error('Save session error:', err);
-        throw err; // Re-throw for dialog error handling
+        throw err;
       }
     },
     [sessionToSave, saveSession, navigate]
@@ -180,11 +155,7 @@ const TrainingControl: React.FC = () => {
     setSaveDialogOpen(false);
     setSessionToSave(null);
     setFetchingLatestData(false);
-
-    // Clear context state (session already stopped in backend by stopTraining)
     saveSession();
-
-    // Navigate to performance page
     setTimeout(() => navigate('/performance'), 500);
   }, [saveSession, navigate]);
 
@@ -193,15 +164,58 @@ const TrainingControl: React.FC = () => {
   }, [navigate]);
 
   return (
-    <Box sx={{ maxWidth: 1400, margin: '0 auto', padding: 2 }}>
-      <Typography variant="h4" gutterBottom align="center" sx={{ mb: 4 }}>
-        🏸 Badminton Training Control
-      </Typography>
+    <Box sx={{ maxWidth: 1400, margin: '0 auto', padding: { xs: 2, md: 3 } }}>
+      {/* Page Header */}
+      <Box sx={{ mb: 4 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.5 }}>
+          <PlayArrow sx={{ color: '#00E5A0', fontSize: 22 }} />
+          <Typography sx={{
+            fontFamily: '"Bebas Neue", cursive',
+            fontSize: { xs: '1.8rem', md: '2.2rem' },
+            letterSpacing: '0.06em',
+            color: '#EFF2F8',
+            lineHeight: 1,
+          }}>
+            TRAINING CONTROL
+          </Typography>
+          {isTrainingActive && (
+            <Box sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.75,
+              ml: 1,
+              px: 1.25,
+              py: 0.4,
+              borderRadius: 1,
+              background: 'rgba(0,229,160,0.12)',
+              border: '1px solid rgba(0,229,160,0.3)',
+            }}>
+              <Box sx={{
+                width: 6,
+                height: 6,
+                borderRadius: '50%',
+                background: '#00E5A0',
+                boxShadow: '0 0 6px #00E5A0',
+                animation: 'pulse 1.5s ease-in-out infinite',
+                '@keyframes pulse': {
+                  '0%, 100%': { opacity: 1 },
+                  '50%': { opacity: 0.4 },
+                },
+              }} />
+              <Typography sx={{ fontSize: '0.72rem', color: '#00E5A0', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                Live
+              </Typography>
+            </Box>
+          )}
+        </Box>
+        <Typography sx={{ color: '#8B9EC4', fontSize: '0.85rem', ml: 4 }}>
+          Select an athlete and template to begin tracking
+        </Typography>
+      </Box>
 
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '5fr 7fr' }, gap: 3 }}>
         {/* Left Column: Controls */}
-        <Box>
-          {/* REFACTORED: Athlete selection extracted to separate component */}
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <AthleteSelector
             athletes={athletes}
             selectedAthlete={selectedAthlete}
@@ -210,7 +224,6 @@ const TrainingControl: React.FC = () => {
             onNavigateToAthletes={handleNavigateToAthletes}
           />
 
-          {/* Template selection - required before starting */}
           <TemplateSelector
             templates={templates}
             selectedTemplate={selectedTemplate}
@@ -218,7 +231,6 @@ const TrainingControl: React.FC = () => {
             onTemplateChange={handleTemplateChange}
           />
 
-          {/* REFACTORED: Training controls extracted to separate component */}
           <TrainingControls
             selectedAthlete={selectedAthlete}
             selectedTemplate={selectedTemplate}
@@ -228,7 +240,6 @@ const TrainingControl: React.FC = () => {
             onStopTraining={handleStopTraining}
           />
 
-          {/* REFACTORED: Live session info extracted to separate component */}
           {isTrainingActive && currentSession && (
             <LiveSessionInfo
               session={currentSession}
@@ -253,7 +264,6 @@ const TrainingControl: React.FC = () => {
         </Box>
       </Box>
 
-      {/* REFACTORED: Save dialog extracted to separate component */}
       <SessionSaveDialog
         open={saveDialogOpen}
         session={sessionToSave}
@@ -268,7 +278,6 @@ const TrainingControl: React.FC = () => {
 
 /**
  * OPTIMIZATION: Memoized court visualization card
- * Only re-renders when isTrainingActive or liveCourtData changes
  */
 const CourtVisualizationCard = React.memo<{
   isTrainingActive: boolean;
@@ -280,52 +289,94 @@ const CourtVisualizationCard = React.memo<{
 }>(
   ({ isTrainingActive, liveCourtData, courtDimensions, targetBox, targetDot, halfCourt }) => {
     return (
-      <Box
-        sx={{
-          bgcolor: 'background.paper',
-          borderRadius: 1,
-          p: 2,
-          boxShadow: 1,
-        }}
-      >
-        <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          🎾 {isTrainingActive ? 'Live Shot Tracking' : 'Court View'}
-        </Typography>
+      <Box sx={{
+        bgcolor: '#141E30',
+        borderRadius: 1,
+        border: '1px solid rgba(255,255,255,0.06)',
+        overflow: 'hidden',
+      }}>
+        {/* Card header */}
+        <Box sx={{
+          px: 2.5,
+          py: 2,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+        }}>
+          <Typography sx={{ fontWeight: 700, fontSize: '0.95rem', letterSpacing: '0.01em' }}>
+            {isTrainingActive ? 'Live Shot Tracking' : 'Court View'}
+          </Typography>
+          {isTrainingActive && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+              <Box sx={{
+                width: 7,
+                height: 7,
+                borderRadius: '50%',
+                background: '#00E5A0',
+                boxShadow: '0 0 8px rgba(0,229,160,0.8)',
+                animation: 'pulse 1.2s ease-in-out infinite',
+                '@keyframes pulse': {
+                  '0%, 100%': { opacity: 1, transform: 'scale(1)' },
+                  '50%': { opacity: 0.5, transform: 'scale(0.85)' },
+                },
+              }} />
+              <Typography sx={{ fontSize: '0.72rem', color: '#00E5A0', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                Recording
+              </Typography>
+            </Box>
+          )}
+        </Box>
 
-        {!isTrainingActive && !liveCourtData && (
-          <Box
-            sx={{
+        {/* Court content */}
+        <Box sx={{ p: 2 }}>
+          {!isTrainingActive && !liveCourtData && (
+            <Box sx={{
               height: 450,
               display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              bgcolor: 'grey.100',
+              background: 'rgba(0,0,0,0.2)',
               borderRadius: 1,
-            }}
-          >
-            <Typography variant="h6" color="text.secondary">
-              Start a training session to see live shot tracking
-            </Typography>
-          </Box>
-        )}
+              border: '1px dashed rgba(255,255,255,0.1)',
+              gap: 1.5,
+            }}>
+              <Box sx={{
+                width: 52,
+                height: 52,
+                borderRadius: '50%',
+                background: 'rgba(0,229,160,0.06)',
+                border: '1px solid rgba(0,229,160,0.15)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+                <PlayArrow sx={{ fontSize: 26, color: 'rgba(0,229,160,0.5)' }} />
+              </Box>
+              <Typography sx={{ color: '#4B5563', fontSize: '0.875rem', textAlign: 'center', px: 2 }}>
+                Start a training session to see live shot tracking
+              </Typography>
+            </Box>
+          )}
 
-        {(isTrainingActive || liveCourtData) && (
-          <CourtVisualization
-            mode="live"
-            currentShot={liveCourtData || undefined}
-            width={courtDimensions.width}
-            height={courtDimensions.height}
-            targetBox={targetBox}
-            targetDot={targetDot}
-            inBox={liveCourtData?.inBox}
-            halfCourt={halfCourt}
-          />
-        )}
+          {(isTrainingActive || liveCourtData) && (
+            <CourtVisualization
+              mode="live"
+              currentShot={liveCourtData || undefined}
+              width={courtDimensions.width}
+              height={courtDimensions.height}
+              targetBox={targetBox}
+              targetDot={targetDot}
+              inBox={liveCourtData?.inBox}
+              halfCourt={halfCourt}
+            />
+          )}
+        </Box>
       </Box>
     );
   },
   (prevProps, nextProps) => {
-    // Custom comparison: only re-render if these props change
     return (
       prevProps.isTrainingActive === nextProps.isTrainingActive &&
       prevProps.liveCourtData === nextProps.liveCourtData &&

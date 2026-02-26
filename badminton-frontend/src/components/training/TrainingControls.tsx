@@ -74,13 +74,15 @@ const TrainingControls: React.FC<TrainingControlsProps> = ({
   };
 
   return (
-    <Card sx={{ mb: 3 }}>
+    <Card>
       <CardContent>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-          <SportsTennis />
-          <Typography variant="h6">Training Session</Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2.5 }}>
+          <SportsTennis sx={{ fontSize: 18, color: '#00E5A0' }} />
+          <Typography sx={{ fontWeight: 700, fontSize: '0.9rem', letterSpacing: '0.01em' }}>
+            Training Session
+          </Typography>
           {isTrainingActive && (
-            <Chip label="TRAINING ACTIVE" color="success" variant="filled" sx={{ fontWeight: 'bold' }} />
+            <Chip label="ACTIVE" color="success" size="small" sx={{ ml: 0.5 }} />
           )}
         </Box>
 
@@ -119,16 +121,21 @@ const TrainingControls: React.FC<TrainingControlsProps> = ({
           </Alert>
         )}
 
-        <Box sx={{ display: 'flex', gap: 2, flexDirection: 'column' }}>
+        <Box sx={{ display: 'flex', gap: 1.5, flexDirection: 'column' }}>
           <Button
             variant="contained"
-            color="success"
+            color="primary"
             size="large"
             fullWidth
             startIcon={<PlayArrow />}
             onClick={handleStart}
             disabled={!selectedAthlete || !selectedTemplate || isTrainingActive}
-            sx={{ py: 2, fontSize: '1.1rem' }}
+            sx={{
+              py: 1.75,
+              fontFamily: '"Bebas Neue", cursive',
+              fontSize: '1.05rem',
+              letterSpacing: '0.08em',
+            }}
           >
             START TRAINING
           </Button>
@@ -141,7 +148,12 @@ const TrainingControls: React.FC<TrainingControlsProps> = ({
             startIcon={<Stop />}
             onClick={handleStop}
             disabled={!isTrainingActive}
-            sx={{ py: 2, fontSize: '1.1rem' }}
+            sx={{
+              py: 1.75,
+              fontFamily: '"Bebas Neue", cursive',
+              fontSize: '1.05rem',
+              letterSpacing: '0.08em',
+            }}
           >
             STOP TRAINING
           </Button>
