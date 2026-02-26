@@ -16,13 +16,14 @@ export const calculateAccuracy = (
 export const determineCourtZone = (position: { x: number; y: number }): CourtZone => {
   const { x, y } = position;
 
-  // Check if position is within court bounds
-  if (x < 0 || x > COURT_LENGTH || y < 0 || y > COURT_WIDTH) {
+  // Check if position is within court bounds (y is 0 to -670 in cm, converted to meters)
+  const absY = Math.abs(y);
+  if (x < 0 || x > COURT_LENGTH || absY > COURT_WIDTH) {
     return 'unknown';
   }
 
   const isFront = x < COURT_LENGTH / 2;
-  const isLeft = y < COURT_WIDTH / 2;
+  const isLeft = absY < COURT_WIDTH / 2;
 
   if (isFront && isLeft) return 'front_left';
   if (isFront && !isLeft) return 'front_right';
@@ -40,7 +41,7 @@ export const calculateAccuracyPercent = (accuracyCm: number): number => {
 
 /**
  * Check if a point is inside a rectangular box
- * All coordinates in cm (half-court: 610 wide × 670 deep)
+ * All coordinates in cm (half-court: 610 wide × 670 deep, y: 0 to -670)
  */
 export const isPointInBox = (
   point: { x: number; y: number },

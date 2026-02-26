@@ -13,16 +13,16 @@ Add a **Target Templates** feature with **hardcoded preset templates** that coac
 - **Isolated**: CV/AI components are unaware of templates - all logic handled by backend
 
 ### Coordinate System (Half-Court)
-```      
+```
 (0,0) ────────net-─────── (610, 0)
   │                           │
   │      HALF COURT           │
   │      (where ball lands)   │
   │                           │
-(0, 670) ───────────────── (610, 670)
+(0, -670) ──────────────── (610, -670)
 
 Scale: 1 unit = 1 centimeter
-Half-court dimensions: 610cm wide × 670cm deep
+Half-court dimensions: 610cm wide × 670cm deep (y: 0 to -670)
 ```
 
 ### Visual Feedback
@@ -62,18 +62,18 @@ export const PRESET_TEMPLATES: TargetTemplate[] = [
     positions: [
       {
         positionIndex: 0,
-        box: { x1: 46, y1: 594, x2: 122, y2: 670 },
-        dot: { x: 46, y: 670 }
+        box: { x1: 46, y1: -594, x2: 122, y2: -670 },
+        dot: { x: 46, y: -670 }
       },
       {
         positionIndex: 1,
-        box: { x1: 488, y1: 198, x2: 564, y2: 274 },
-        dot: { x: 526, y: 236 }
+        box: { x1: 488, y1: -198, x2: 564, y2: -274 },
+        dot: { x: 526, y: -236 }
       },
       {
         positionIndex: 2,
-        box: { x1: 488, y1: 0, x2: 564, y2: 76 },
-        dot: { x: 526, y: 38 }
+        box: { x1: 488, y1: 0, x2: 564, y2: -76 },
+        dot: { x: 526, y: -38 }
       },
     ]
   },
@@ -85,19 +85,19 @@ export const PRESET_TEMPLATES: TargetTemplate[] = [
 ```
 (0,0) ─────────────────────────────────── (610, 0)
   │                              ┌─────┐
-  │                              │ [3] │ dot:(526,38)
+  │                              │ [3] │ dot:(526,-38)
   │                              └─────┘
   │
   │                              ┌─────┐
-  │                              │ [2] │ dot:(526,236)
+  │                              │ [2] │ dot:(526,-236)
   │                              └─────┘
   │
   │
   │
   │  ┌─────┐
   │  │ [1] │
-  │  └─────┘ dot:(46,670)
-(0, 670) ─────────────────────────────── (610, 670)
+  │  └─────┘ dot:(46,-670)
+(0, -670) ────────────────────────────── (610, -670)
 
 Shot cycle: 0→[1], 1→[2], 2→[3], 3→[1], 4→[2], 5→[3]...
 ```
@@ -349,7 +349,7 @@ interface ShotDataFromCV {
   sessionId: string;
   shotNumber: number;
   timestamp: string;
-  landingPosition: { x: number; y: number };  // In cm (0-610 x 0-670)
+  landingPosition: { x: number; y: number };  // In cm (0-610 x 0 to -670)
   velocity?: number;
   detectionConfidence?: number;
 }
@@ -420,7 +420,7 @@ CourtVisualization (Half-Court Mode)     Template Coordinates
   │                    │      ===     │                    │
   │                    │              │                    │
   │                    │              │                    │
-(0, 670) ────────── (610, 670)      (0, 670) ────────── (610, 670)
+(0, -670) ────────── (610, -670)    (0, -670) ────────── (610, -670)
 ```
 
 ### Modify CourtVisualization.tsx
@@ -457,8 +457,8 @@ viewBox="0 0 610 670"   // 610cm × 670cm
 **Half-court line positions (in cm):**
 ```
 Net line: y = 0
-Short service line: y = 198
-Long service line (doubles): y = 76 from back = 594
+Short service line: y = -198
+Long service line (doubles): y = -76 from back = -594
 Center line: x = 305 (half of 610)
 Side tramlines: x = 46 (singles sideline)
 ```
@@ -466,7 +466,7 @@ Side tramlines: x = 46 (singles sideline)
 ### Shot Position Mapping
 
 When `halfCourt={true}`:
-- Shot `landingPosition` is already in cm (0-610, 0-670)
+- Shot `landingPosition` is already in cm (0-610, 0 to -670)
 - No coordinate transformation needed
 - Direct mapping: `x={shot.landingPosition.x} y={shot.landingPosition.y}`
 
@@ -522,9 +522,9 @@ Update the E2E test mock CV component to generate shots that land **exactly on t
 
 ### template-001 Target Dots (for reference)
 ```
-Position 0: dot = (46, 670)   - Bottom-left corner
-Position 1: dot = (526, 236)  - Mid-right area
-Position 2: dot = (526, 38)   - Top-right near net
+Position 0: dot = (46, -670)   - Bottom-left corner
+Position 1: dot = (526, -236)  - Mid-right area
+Position 2: dot = (526, -38)   - Top-right near net
 ```
 
 ### Mock CV Shot Generation Logic
@@ -532,9 +532,9 @@ Position 2: dot = (526, 38)   - Top-right near net
 ```python
 # template-001 target dots (in cm)
 TEMPLATE_001_DOTS = [
-    {'x': 46, 'y': 670},   # Position 0
-    {'x': 526, 'y': 236},  # Position 1
-    {'x': 526, 'y': 38},   # Position 2
+    {'x': 46, 'y': -670},   # Position 0
+    {'x': 526, 'y': -236},  # Position 1
+    {'x': 526, 'y': -38},   # Position 2
 ]
 
 def get_landing_position(shot_number: int) -> dict:
@@ -551,15 +551,15 @@ def get_landing_position(shot_number: int) -> dict:
 
 ### Shot Sequence (50 shots)
 ```
-Shot 0  → Position 0 → Land at (46, 670)
-Shot 1  → Position 1 → Land at (526, 236)
-Shot 2  → Position 2 → Land at (526, 38)
-Shot 3  → Position 0 → Land at (46, 670)
-Shot 4  → Position 1 → Land at (526, 236)
+Shot 0  → Position 0 → Land at (46, -670)
+Shot 1  → Position 1 → Land at (526, -236)
+Shot 2  → Position 2 → Land at (526, -38)
+Shot 3  → Position 0 → Land at (46, -670)
+Shot 4  → Position 1 → Land at (526, -236)
 ...
-Shot 47 → Position 2 → Land at (526, 38)
-Shot 48 → Position 0 → Land at (46, 670)
-Shot 49 → Position 1 → Land at (526, 236)
+Shot 47 → Position 2 → Land at (526, -38)
+Shot 48 → Position 0 → Land at (46, -670)
+Shot 49 → Position 1 → Land at (526, -236)
 ```
 
 ### E2E Test Verification Updates
@@ -588,9 +588,9 @@ import json
 import time
 
 TEMPLATE_001_DOTS = [
-    {'x': 46, 'y': 670},
-    {'x': 526, 'y': 236},
-    {'x': 526, 'y': 38},
+    {'x': 46, 'y': -670},
+    {'x': 526, 'y': -236},
+    {'x': 526, 'y': -38},
 ]
 
 def send_shots(session_id: str, num_shots: int = 50, interval_ms: int = 50):
@@ -668,8 +668,8 @@ After implementation:
 
 | Position | Box (x1,y1)→(x2,y2) | Dot (x,y) |
 |----------|---------------------|-----------|
-| 0 | (46, 594) → (122, 670) | (46, 670) |
-| 1 | (488, 198) → (564, 274) | (526, 236) |
-| 2 | (488, 0) → (564, 76) | (526, 38) |
+| 0 | (46, -594) → (122, -670) | (46, -670) |
+| 1 | (488, -198) → (564, -274) | (526, -236) |
+| 2 | (488, 0) → (564, -76) | (526, -38) |
 
 *More templates will be added later.*

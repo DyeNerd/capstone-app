@@ -160,12 +160,12 @@ The CV component must output landing positions in **half-court centimeters**.
 | Axis | Range | Direction |
 |------|-------|-----------|
 | **X** | 0 - 610 cm | Left edge (0) to right edge (610) |
-| **Y** | 0 - 670 cm | Net (0) to baseline (670) |
+| **Y** | 0 to -670 cm | Net (0) to baseline (-670) |
 
 **The CV component needs to:**
 1. Calibrate the camera so it knows the court boundaries
 2. Map detected pixel positions to half-court centimeter coordinates
-3. Output `landingPosition: { x, y }` where x is 0-610 and y is 0-670
+3. Output `landingPosition: { x, y }` where x is 0-610 and y is 0 to -670
 
 The backend handles everything else (accuracy calculation, target matching, zone detection, database storage).
 
@@ -277,7 +277,7 @@ Share with your friend:
 2. **Exchange name:** `badminton_training` (topic type)
 3. **Messages to consume:** `session.start`, `session.stop` (create own queue, bind to these routing keys)
 4. **Messages to produce:** `shot.data.detected` (publish to the exchange)
-5. **Coordinate system:** Half-court, centimeters, x=0-610, y=0-670, origin at net left corner
+5. **Coordinate system:** Half-court, centimeters, x=0-610, y=0 to -670, origin at net left corner
 6. **Shot message format:** `{ sessionId, shotNumber, timestamp, landingPosition: {x, y}, velocity?, detectionConfidence? }`
 7. **Reference implementation:** `badminton-backend/scripts/mock_cv_component.py` -- a working Python example they can use as a starting point
 

@@ -60,22 +60,22 @@ describe('TemplateService', () => {
       // Verify first position
       expect(template?.positions[0]).toEqual({
         positionIndex: 0,
-        box: { x1: 46, y1: 594, x2: 122, y2: 670 },
-        dot: { x: 46, y: 670 },
+        box: { x1: 46, y1: -594, x2: 122, y2: -670 },
+        dot: { x: 46, y: -670 },
       });
 
       // Verify second position
       expect(template?.positions[1]).toEqual({
         positionIndex: 1,
-        box: { x1: 488, y1: 198, x2: 564, y2: 274 },
-        dot: { x: 526, y: 236 },
+        box: { x1: 488, y1: -198, x2: 564, y2: -274 },
+        dot: { x: 526, y: -236 },
       });
 
       // Verify third position
       expect(template?.positions[2]).toEqual({
         positionIndex: 2,
-        box: { x1: 488, y1: 0, x2: 564, y2: 76 },
-        dot: { x: 526, y: 38 },
+        box: { x1: 488, y1: 0, x2: 564, y2: -76 },
+        dot: { x: 526, y: -38 },
       });
     });
   });
@@ -86,7 +86,7 @@ describe('TemplateService', () => {
 
       expect(target).not.toBeNull();
       expect(target?.positionIndex).toBe(0);
-      expect(target?.dot).toEqual({ x: 46, y: 670 });
+      expect(target?.dot).toEqual({ x: 46, y: -670 });
     });
 
     it('should return second position for shot number 1', () => {
@@ -94,7 +94,7 @@ describe('TemplateService', () => {
 
       expect(target).not.toBeNull();
       expect(target?.positionIndex).toBe(1);
-      expect(target?.dot).toEqual({ x: 526, y: 236 });
+      expect(target?.dot).toEqual({ x: 526, y: -236 });
     });
 
     it('should return third position for shot number 2', () => {
@@ -102,7 +102,7 @@ describe('TemplateService', () => {
 
       expect(target).not.toBeNull();
       expect(target?.positionIndex).toBe(2);
-      expect(target?.dot).toEqual({ x: 526, y: 38 });
+      expect(target?.dot).toEqual({ x: 526, y: -38 });
     });
 
     it('should cycle back to first position for shot number 3', () => {
@@ -110,7 +110,7 @@ describe('TemplateService', () => {
 
       expect(target).not.toBeNull();
       expect(target?.positionIndex).toBe(0);
-      expect(target?.dot).toEqual({ x: 46, y: 670 });
+      expect(target?.dot).toEqual({ x: 46, y: -670 });
     });
 
     it('should correctly cycle through positions for multiple shots', () => {
@@ -163,7 +163,7 @@ describe('TemplateService', () => {
     it('should have valid coordinate values within half-court bounds', () => {
       const templates = templateService.getAllTemplates();
       const MAX_X = 610; // Half-court width in cm
-      const MAX_Y = 670; // Half-court depth in cm
+      const MIN_Y = -670; // Half-court depth in cm (y: 0 at net, -670 at baseline)
 
       templates.forEach((template) => {
         template.positions.forEach((position) => {
@@ -172,16 +172,16 @@ describe('TemplateService', () => {
           expect(position.box.x1).toBeLessThanOrEqual(MAX_X);
           expect(position.box.x2).toBeGreaterThanOrEqual(0);
           expect(position.box.x2).toBeLessThanOrEqual(MAX_X);
-          expect(position.box.y1).toBeGreaterThanOrEqual(0);
-          expect(position.box.y1).toBeLessThanOrEqual(MAX_Y);
-          expect(position.box.y2).toBeGreaterThanOrEqual(0);
-          expect(position.box.y2).toBeLessThanOrEqual(MAX_Y);
+          expect(position.box.y1).toBeGreaterThanOrEqual(MIN_Y);
+          expect(position.box.y1).toBeLessThanOrEqual(0);
+          expect(position.box.y2).toBeGreaterThanOrEqual(MIN_Y);
+          expect(position.box.y2).toBeLessThanOrEqual(0);
 
           // Check dot coordinates
           expect(position.dot.x).toBeGreaterThanOrEqual(0);
           expect(position.dot.x).toBeLessThanOrEqual(MAX_X);
-          expect(position.dot.y).toBeGreaterThanOrEqual(0);
-          expect(position.dot.y).toBeLessThanOrEqual(MAX_Y);
+          expect(position.dot.y).toBeGreaterThanOrEqual(MIN_Y);
+          expect(position.dot.y).toBeLessThanOrEqual(0);
         });
       });
     });

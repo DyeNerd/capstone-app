@@ -105,15 +105,15 @@ describe('Court Utilities', () => {
 
     describe('template-001 positions', () => {
       // Position 0 box from template-001
-      const position0Box = { x1: 46, y1: 594, x2: 122, y2: 670 };
+      const position0Box = { x1: 46, y1: -594, x2: 122, y2: -670 };
 
       it('should return true for dot inside position 0 box', () => {
-        const dot = { x: 46, y: 670 }; // Position 0 dot
+        const dot = { x: 46, y: -670 }; // Position 0 dot
         expect(isPointInBox(dot, position0Box)).toBe(true);
       });
 
       it('should return true for point at center of position 0 box', () => {
-        const center = { x: 84, y: 632 };
+        const center = { x: 84, y: -632 };
         expect(isPointInBox(center, position0Box)).toBe(true);
       });
 
@@ -123,18 +123,18 @@ describe('Court Utilities', () => {
       });
 
       // Position 1 box from template-001
-      const position1Box = { x1: 488, y1: 198, x2: 564, y2: 274 };
+      const position1Box = { x1: 488, y1: -198, x2: 564, y2: -274 };
 
       it('should return true for dot inside position 1 box', () => {
-        const dot = { x: 526, y: 236 }; // Position 1 dot
+        const dot = { x: 526, y: -236 }; // Position 1 dot
         expect(isPointInBox(dot, position1Box)).toBe(true);
       });
 
       // Position 2 box from template-001
-      const position2Box = { x1: 488, y1: 0, x2: 564, y2: 76 };
+      const position2Box = { x1: 488, y1: 0, x2: 564, y2: -76 };
 
       it('should return true for dot inside position 2 box', () => {
-        const dot = { x: 526, y: 38 }; // Position 2 dot
+        const dot = { x: 526, y: -38 }; // Position 2 dot
         expect(isPointInBox(dot, position2Box)).toBe(true);
       });
     });
@@ -222,9 +222,14 @@ describe('Court Utilities', () => {
       expect(determineCourtZone(position)).toBe('unknown');
     });
 
-    it('should return unknown for negative coordinates', () => {
+    it('should return unknown for negative x coordinate', () => {
       const position = { x: -1, y: 3 };
       expect(determineCourtZone(position)).toBe('unknown');
+    });
+
+    it('should return valid zone for negative y coordinate within court bounds', () => {
+      const position = { x: 3, y: -1 };
+      expect(determineCourtZone(position)).toBe('front_left');
     });
   });
 

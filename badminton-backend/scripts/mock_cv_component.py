@@ -64,16 +64,16 @@ EXCHANGE = 'badminton_training'
 ROUTING_KEY = 'shot.data.mock'
 
 # Half-Court Dimensions (in centimeters)
-# Template coordinate system: (0,0) at net left, (610, 670) at baseline right
+# Template coordinate system: (0,0) at net left, (610, -670) at baseline right
 HALF_COURT_WIDTH = 610   # cm
 HALF_COURT_DEPTH = 670   # cm
 
 # Template-001 target dots (exact landing positions for 100% accuracy)
 # Shot N lands on position N % 3, cycling through all 3 positions
 TEMPLATE_001_DOTS = [
-    {'x': 46, 'y': 670},   # Position 0 - Bottom-left corner (baseline)
-    {'x': 526, 'y': 236},  # Position 1 - Mid-right area
-    {'x': 526, 'y': 38},   # Position 2 - Top-right near net
+    {'x': 46, 'y': -670},   # Position 0 - Bottom-left corner (baseline)
+    {'x': 526, 'y': -236},  # Position 1 - Mid-right area
+    {'x': 526, 'y': -38},   # Position 2 - Top-right near net
 ]
 
 def get_template_landing_position(template_id: str, shot_number: int) -> dict:
@@ -98,8 +98,8 @@ def get_template_landing_position(template_id: str, shot_number: int) -> dict:
 def generate_landing_position(zone='random'):
     """
     Generate realistic landing positions on half-court in centimeters.
-    Half-court coordinates: x=[0, 610], y=[0, 670]
-    (0,0) is at the net, (610, 670) is at the baseline.
+    Half-court coordinates: x=[0, 610], y=[0, -670]
+    (0,0) is at the net, (610, -670) is at the baseline.
 
     Note: Target positions come from templates on the backend.
     This function just generates where the shuttlecock lands.
@@ -109,14 +109,14 @@ def generate_landing_position(zone='random'):
         zone = random.choice(zones)
 
     # Define zone boundaries in cm (half-court)
-    # y=0 is at net, y=670 is at baseline
+    # y=0 is at net, y=-670 is at baseline
     zone_positions = {
-        'front_left': (50, 200, 0, 200),       # Near net, left side
-        'front_right': (410, 560, 0, 200),     # Near net, right side
-        'mid_left': (50, 200, 250, 420),       # Mid court, left side
-        'mid_right': (410, 560, 250, 420),     # Mid court, right side
-        'back_left': (50, 200, 470, 670),      # Baseline, left side
-        'back_right': (410, 560, 470, 670),    # Baseline, right side
+        'front_left': (50, 200, -200, 0),       # Near net, left side
+        'front_right': (410, 560, -200, 0),     # Near net, right side
+        'mid_left': (50, 200, -420, -250),      # Mid court, left side
+        'mid_right': (410, 560, -420, -250),    # Mid court, right side
+        'back_left': (50, 200, -670, -470),     # Baseline, left side
+        'back_right': (410, 560, -670, -470),   # Baseline, right side
     }
 
     if zone in zone_positions:
@@ -126,7 +126,7 @@ def generate_landing_position(zone='random'):
     else:
         # Fallback: anywhere on half-court
         x = round(random.uniform(50, HALF_COURT_WIDTH - 50))
-        y = round(random.uniform(50, HALF_COURT_DEPTH - 50))
+        y = round(random.uniform(-(HALF_COURT_DEPTH - 50), -50))
 
     return {'x': x, 'y': y}
 
@@ -160,7 +160,7 @@ def generate_mock_shot(session_id, shot_number, template_id=None):
         'sessionId': session_id,
         'shotNumber': shot_number,
         'timestamp': datetime.utcnow().isoformat() + 'Z',
-        'landingPosition': landing,  # In cm (half-court: 0-610 x 0-670)
+        'landingPosition': landing,  # In cm (half-court: x=0-610, y=0 to -670)
         'velocity': velocity,
         'detectionConfidence': confidence
     }

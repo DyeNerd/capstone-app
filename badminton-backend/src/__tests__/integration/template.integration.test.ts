@@ -97,22 +97,22 @@ describe('Template API Integration Tests', () => {
       // Verify position 0
       expect(template.positions[0]).toEqual({
         positionIndex: 0,
-        box: { x1: 46, y1: 594, x2: 122, y2: 670 },
-        dot: { x: 46, y: 670 },
+        box: { x1: 46, y1: -594, x2: 122, y2: -670 },
+        dot: { x: 46, y: -670 },
       });
 
       // Verify position 1
       expect(template.positions[1]).toEqual({
         positionIndex: 1,
-        box: { x1: 488, y1: 198, x2: 564, y2: 274 },
-        dot: { x: 526, y: 236 },
+        box: { x1: 488, y1: -198, x2: 564, y2: -274 },
+        dot: { x: 526, y: -236 },
       });
 
       // Verify position 2
       expect(template.positions[2]).toEqual({
         positionIndex: 2,
-        box: { x1: 488, y1: 0, x2: 564, y2: 76 },
-        dot: { x: 526, y: 38 },
+        box: { x1: 488, y1: 0, x2: 564, y2: -76 },
+        dot: { x: 526, y: -38 },
       });
     });
 

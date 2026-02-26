@@ -68,7 +68,7 @@ const CourtVisualization: React.FC<CourtVisualizationProps> = ({
       const scaleY = (height - padding * 2) / HALF_COURT_DEPTH;
 
       const toSvgX = (courtX: number | string) => padding + Number(courtX) * scaleX;
-      const toSvgY = (courtY: number | string) => padding + Number(courtY) * scaleY;
+      const toSvgY = (courtY: number | string) => padding - Number(courtY) * scaleY;
 
       return { padding, toSvgX, toSvgY };
     } else {
@@ -487,12 +487,12 @@ CourtLines.displayName = 'CourtLines';
 /**
  * Half-court lines component for template-based training
  * Coordinates in cm: 610cm wide × 670cm deep
- * Origin at top-left (net side)
+ * Origin at net (y=0), baseline at y=-670
  *
  * Line positions (in cm):
  * - Net line: y = 0
- * - Short service line: y = 198
- * - Long service line (doubles): y = 594 (76cm from back)
+ * - Short service line: y = -198
+ * - Long service line (doubles): y = -594 (76cm from back)
  * - Center line: x = 305 (half of 610)
  * - Singles sidelines: x = 46 and x = 564
  */
@@ -537,22 +537,22 @@ const HalfCourtLines = React.memo<{
         NET
       </text>
 
-      {/* Short service line at y=198cm */}
+      {/* Short service line at y=-198cm */}
       <line
         x1={padding}
-        y1={toSvgY(198)}
+        y1={toSvgY(-198)}
         x2={width - padding}
-        y2={toSvgY(198)}
+        y2={toSvgY(-198)}
         stroke="white"
         strokeWidth="2"
       />
 
-      {/* Long service line (doubles) at y=594cm (76cm from back) */}
+      {/* Long service line (doubles) at y=-594cm (76cm from back) */}
       <line
         x1={padding}
-        y1={toSvgY(594)}
+        y1={toSvgY(-594)}
         x2={width - padding}
-        y2={toSvgY(594)}
+        y2={toSvgY(-594)}
         stroke="white"
         strokeWidth="2"
       />
@@ -562,7 +562,7 @@ const HalfCourtLines = React.memo<{
         x1={toSvgX(305)}
         y1={toSvgY(0)}
         x2={toSvgX(305)}
-        y2={toSvgY(198)}
+        y2={toSvgY(-198)}
         stroke="white"
         strokeWidth="2"
       />
