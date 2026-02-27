@@ -80,8 +80,8 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
             <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
               <CourtVisualization
                 mode="preview"
-                width={300}
-                height={200}
+                width={360}
+                height={396}
                 halfCourt={true}
                 templatePositions={selectedTemplate.positions}
               />

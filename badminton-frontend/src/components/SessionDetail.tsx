@@ -296,8 +296,8 @@ const SessionDetail: React.FC = () => {
               <CourtVisualization
                 mode="review"
                 shots={[session.shots[selectedShotIndex]]}
-                width={Math.min(600, window.innerWidth - 100)}
-                height={500}
+                width={Math.min(500, window.innerWidth - 100)}
+                height={session.template_id ? Math.round(Math.min(500, window.innerWidth - 100) * 670 / 610) : 400}
                 showLabels={true}
                 halfCourt={!!session.template_id}
                 targetBox={targetBox}

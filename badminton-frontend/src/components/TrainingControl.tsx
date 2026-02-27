@@ -54,11 +54,11 @@ const TrainingControl: React.FC = () => {
   }, [loadAthletes, loadTemplates]);
 
   const courtDimensions = useMemo(() => {
-    return {
-      width: Math.min(700, window.innerWidth - 100),
-      height: 450,
-    };
-  }, []);
+    const width = Math.min(550, window.innerWidth - 100);
+    // Half-court (610cm × 670cm) must render portrait; full-court stays landscape
+    const height = selectedTemplate ? Math.round(width * 670 / 610) : 450;
+    return { width, height };
+  }, [selectedTemplate]);
 
   const currentTarget = useMemo(() => {
     if (!selectedTemplate || selectedTemplate.positions.length === 0) {
@@ -214,7 +214,7 @@ const TrainingControl: React.FC = () => {
       </Box>
 
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '5fr 7fr' }, gap: 3 }}>
-        {/* Left Column: Controls */}
+        {/* Left Column: Athlete & Template Selection */}
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <AthleteSelector
             athletes={athletes}
@@ -231,15 +231,6 @@ const TrainingControl: React.FC = () => {
             onTemplateChange={handleTemplateChange}
           />
 
-          <TrainingControls
-            selectedAthlete={selectedAthlete}
-            selectedTemplate={selectedTemplate}
-            currentSession={currentSession}
-            isTrainingActive={isTrainingActive}
-            onStartTraining={handleStartTraining}
-            onStopTraining={handleStopTraining}
-          />
-
           {isTrainingActive && currentSession && (
             <LiveSessionInfo
               session={currentSession}
@@ -251,8 +242,17 @@ const TrainingControl: React.FC = () => {
           )}
         </Box>
 
-        {/* Right Column: Court Visualization */}
-        <Box>
+        {/* Right Column: Training Controls + Court Visualization */}
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <TrainingControls
+            selectedAthlete={selectedAthlete}
+            selectedTemplate={selectedTemplate}
+            currentSession={currentSession}
+            isTrainingActive={isTrainingActive}
+            onStartTraining={handleStartTraining}
+            onStopTraining={handleStopTraining}
+          />
+
           <CourtVisualizationCard
             isTrainingActive={isTrainingActive}
             liveCourtData={liveCourtData}
@@ -361,16 +361,18 @@ const CourtVisualizationCard = React.memo<{
           )}
 
           {(isTrainingActive || liveCourtData) && (
-            <CourtVisualization
-              mode="live"
-              currentShot={liveCourtData || undefined}
-              width={courtDimensions.width}
-              height={courtDimensions.height}
-              targetBox={targetBox}
-              targetDot={targetDot}
-              inBox={liveCourtData?.inBox}
-              halfCourt={halfCourt}
-            />
+            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+              <CourtVisualization
+                mode="live"
+                currentShot={liveCourtData || undefined}
+                width={courtDimensions.width}
+                height={courtDimensions.height}
+                targetBox={targetBox}
+                targetDot={targetDot}
+                inBox={liveCourtData?.inBox}
+                halfCourt={halfCourt}
+              />
+            </Box>
           )}
         </Box>
       </Box>

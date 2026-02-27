@@ -490,10 +490,11 @@ CourtLines.displayName = 'CourtLines';
  * Origin at net (y=0), baseline at y=-670
  *
  * Line positions (in cm):
- * - Net line: y = 0
- * - Short service line: y = -198
+ * - Net line: y = 0 (top edge)
+ * - Short service line: y = -198 (198cm from net)
  * - Long service line (doubles): y = -594 (76cm from back)
- * - Center line: x = 305 (half of 610)
+ * - Back boundary: y = -670 (bottom edge)
+ * - Center line: x = 305 (from short service line y=-198 to back boundary y=-670)
  * - Singles sidelines: x = 46 and x = 564
  */
 const HalfCourtLines = React.memo<{
@@ -557,12 +558,12 @@ const HalfCourtLines = React.memo<{
         strokeWidth="2"
       />
 
-      {/* Center line at x=305cm (divides service boxes) */}
+      {/* Center line at x=305cm (divides service boxes: from short service line to back boundary) */}
       <line
         x1={toSvgX(305)}
-        y1={toSvgY(0)}
+        y1={toSvgY(-198)}
         x2={toSvgX(305)}
-        y2={toSvgY(-198)}
+        y2={toSvgY(-670)}
         stroke="white"
         strokeWidth="2"
       />
