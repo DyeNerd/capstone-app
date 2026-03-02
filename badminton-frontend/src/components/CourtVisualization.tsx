@@ -655,11 +655,11 @@ const LiveShotInfo = React.memo<{ shot: ShotData; halfCourt?: boolean }>(({ shot
         )}
         {shot.velocity && <Chip label={`Velocity: ${shot.velocity.toFixed(1)} km/h`} />}
         <Chip
-          label={`Target: (${shot.targetPosition.x.toFixed(decimals)}${unit}, ${shot.targetPosition.y.toFixed(decimals)}${unit})`}
+          label={`Target: (${(halfCourt ? shot.targetPosition.x * 100 : shot.targetPosition.x).toFixed(decimals)}${unit}, ${(halfCourt ? shot.targetPosition.y * 100 : shot.targetPosition.y).toFixed(decimals)}${unit})`}
           variant="outlined"
         />
         <Chip
-          label={`Landing: (${shot.landingPosition.x.toFixed(decimals)}${unit}, ${shot.landingPosition.y.toFixed(decimals)}${unit})`}
+          label={`Landing: (${(halfCourt ? shot.landingPosition.x * 100 : shot.landingPosition.x).toFixed(decimals)}${unit}, ${(halfCourt ? shot.landingPosition.y * 100 : shot.landingPosition.y).toFixed(decimals)}${unit})`}
           variant="outlined"
         />
       </Box>
