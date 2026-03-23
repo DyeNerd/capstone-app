@@ -36,6 +36,7 @@ export interface Shot {
   detection_confidence?: number;
   in_box?: boolean;
   target_position_index?: number;
+  score?: number;
 }
 
 export interface TrainingSession {
@@ -49,6 +50,7 @@ export interface TrainingSession {
   successful_shots: number;
   average_accuracy_percent?: number;
   average_shot_velocity_kmh?: number;
+  average_score?: number;
   target_zone?: string;
   session_notes?: string;
   session_rating?: number;

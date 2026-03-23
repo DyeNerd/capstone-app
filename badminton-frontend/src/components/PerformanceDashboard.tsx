@@ -153,7 +153,14 @@ const PerformanceDashboard: React.FC = () => {
       ? sessionsWithVelocity.reduce((sum, s) => sum + Number(s.average_shot_velocity_kmh), 0) / sessionsWithVelocity.length
       : 0;
 
-    return { totalSessions: completedSessions.length, totalShots, avgAccuracy, avgVelocity };
+    const sessionsWithScore = completedSessions.filter(
+      (s) => s.average_score !== null && s.average_score !== undefined
+    );
+    const avgScore = sessionsWithScore.length > 0
+      ? sessionsWithScore.reduce((sum, s) => sum + Number(s.average_score), 0) / sessionsWithScore.length
+      : 0;
+
+    return { totalSessions: completedSessions.length, totalShots, avgAccuracy, avgVelocity, avgScore };
   };
 
   const stats = calculateStats();
@@ -208,7 +215,7 @@ const PerformanceDashboard: React.FC = () => {
       {stats && (
         <Box sx={{
           display: 'grid',
-          gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
+          gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(5, 1fr)' },
           gap: 2,
           mb: 3,
         }}>
@@ -235,6 +242,12 @@ const PerformanceDashboard: React.FC = () => {
             label="Avg Velocity km/h"
             accentColor="#A78BFA"
             icon={<Speed />}
+          />
+          <StatCard
+            value={`${isNaN(stats.avgScore) ? '0.0' : stats.avgScore.toFixed(1)}`}
+            label="Avg Score"
+            accentColor="#60A5FA"
+            icon={<TrendingUp />}
           />
         </Box>
       )}
@@ -265,6 +278,7 @@ const PerformanceDashboard: React.FC = () => {
                   <TableCell>Coach</TableCell>
                   <TableCell align="center">Shots</TableCell>
                   <TableCell align="center">Accuracy</TableCell>
+                  <TableCell align="center">Score</TableCell>
                   <TableCell align="center">Velocity</TableCell>
                   <TableCell align="center">Status</TableCell>
                   <TableCell align="center">Rating</TableCell>
@@ -299,6 +313,23 @@ const PerformanceDashboard: React.FC = () => {
                               : '#F87171',
                         }}>
                           {Number(session.average_accuracy_percent).toFixed(1)}%
+                        </Typography>
+                      ) : (
+                        <Typography sx={{ color: '#4B5563', fontSize: '0.875rem' }}>—</Typography>
+                      )}
+                    </TableCell>
+                    <TableCell align="center">
+                      {session.average_score !== null && session.average_score !== undefined ? (
+                        <Typography sx={{
+                          fontSize: '0.875rem',
+                          fontWeight: 600,
+                          color: Number(session.average_score) >= 90
+                            ? '#00E5A0'
+                            : Number(session.average_score) >= 75
+                              ? '#FBBF24'
+                              : '#F87171',
+                        }}>
+                          {Number(session.average_score).toFixed(1)}
                         </Typography>
                       ) : (
                         <Typography sx={{ color: '#4B5563', fontSize: '0.875rem' }}>—</Typography>

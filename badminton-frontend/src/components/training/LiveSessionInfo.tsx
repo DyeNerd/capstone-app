@@ -7,6 +7,7 @@ interface LiveSessionInfoProps {
     start_time: string;
     total_shots: number;
     successful_shots: number;
+    average_score?: number;
   };
   templateName?: string;
   currentPositionIndex?: number;
@@ -112,6 +113,17 @@ const LiveSessionInfo: React.FC<LiveSessionInfoProps> = ({
             </Typography>
             <Typography sx={{ fontFamily: '"Bebas Neue", cursive', fontSize: '1.8rem', color: '#A78BFA', lineHeight: 1, letterSpacing: '0.04em' }}>
               {successRate}%
+            </Typography>
+          </Box>
+
+          <Box>
+            <Typography sx={{ fontSize: '0.7rem', color: '#8B9EC4', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600, mb: 0.25 }}>
+              Avg Score
+            </Typography>
+            <Typography sx={{ fontFamily: '"Bebas Neue", cursive', fontSize: '1.8rem', color: '#60A5FA', lineHeight: 1, letterSpacing: '0.04em' }}>
+              {session.average_score !== undefined && session.average_score !== null
+                ? Number(session.average_score).toFixed(1)
+                : '—'}
             </Typography>
           </Box>
         </Box>

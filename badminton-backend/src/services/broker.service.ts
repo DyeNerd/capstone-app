@@ -5,7 +5,7 @@ import { shotService } from './shot.service';
 import { sessionService } from './session.service';
 import { templateService } from './template.service';
 import { socketHandler } from '../websocket/socket.handler';
-import { calculateAccuracy, determineCourtZone, calculateAccuracyPercent, isPointInBox } from '../utils/court.utils';
+import { calculateAccuracy, determineCourtZone, calculateAccuracyPercent, isPointInBox, calculateScore } from '../utils/court.utils';
 
 class BrokerService {
   private connection: ChannelModel | null = null;
@@ -156,6 +156,7 @@ class BrokerService {
     const accuracyPercent = calculateAccuracyPercent(accuracyCm);
     const courtZone = determineCourtZone(landingInMeters);
     const wasSuccessful = accuracyCm < 30;
+    const score = calculateScore(accuracyCm, inBox ?? null);
 
     // Save shot to database (store positions in meters for consistency)
     const shot = await shotService.createShot({
@@ -174,6 +175,7 @@ class BrokerService {
       courtZone,
       inBox,
       targetPositionIndex,
+      score,
     });
 
     // OPTIMIZATION 1: Incremental stats update (O(1) vs O(n))
@@ -181,7 +183,8 @@ class BrokerService {
       sessionId,
       accuracyPercent,
       velocity ?? 0,
-      wasSuccessful
+      wasSuccessful,
+      score
     );
 
     // OPTIMIZATION 2: Immediate shot broadcast (real-time UX)
@@ -193,6 +196,7 @@ class BrokerService {
       successful_shots: updatedSession.successful_shots || 0,
       average_accuracy_percent: Number(updatedSession.average_accuracy_percent || 0),
       average_shot_velocity_kmh: Number(updatedSession.average_shot_velocity_kmh || 0),
+      average_score: Number(updatedSession.average_score || 0),
     });
   }
 
@@ -207,6 +211,7 @@ class BrokerService {
       successful_shots: number;
       average_accuracy_percent: number;
       average_shot_velocity_kmh: number;
+      average_score: number;
     }
   ): void {
     // Cancel existing pending broadcast

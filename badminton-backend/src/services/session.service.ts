@@ -24,6 +24,7 @@ interface SessionStats {
   successfulShots: number;
   averageAccuracy: number;
   averageVelocity: number;
+  averageScore: number;
 }
 
 interface SessionListFilters {
@@ -138,9 +139,10 @@ class SessionService {
         }
         acc.averageAccuracy += Number(shot.accuracy_percent || 0);
         acc.averageVelocity += Number(shot.velocity_kmh || 0);
+        acc.averageScore += Number(shot.score || 0);
         return acc;
       },
-      { totalShots: 0, successfulShots: 0, averageAccuracy: 0, averageVelocity: 0 }
+      { totalShots: 0, successfulShots: 0, averageAccuracy: 0, averageVelocity: 0, averageScore: 0 }
     );
 
     const totalShots = stats.totalShots;
@@ -148,6 +150,7 @@ class SessionService {
     session.successful_shots = stats.successfulShots;
     session.average_accuracy_percent = stats.averageAccuracy / totalShots;
     session.average_shot_velocity_kmh = stats.averageVelocity / totalShots;
+    session.average_score = stats.averageScore / totalShots;
 
     return await this.sessionRepository.save(session);
   }
@@ -161,7 +164,8 @@ class SessionService {
     sessionId: string,
     newShotAccuracy: number,
     newShotVelocity: number,
-    wasSuccessful: boolean
+    wasSuccessful: boolean,
+    newShotScore: number
   ): Promise<TrainingSession> {
     const session = await this.getSessionById(sessionId, []); // No relations needed
 
@@ -170,6 +174,7 @@ class SessionService {
 
     const oldAvgAccuracy = Number(session.average_accuracy_percent || 0);
     const oldAvgVelocity = Number(session.average_shot_velocity_kmh || 0);
+    const oldAvgScore = Number(session.average_score || 0);
 
     session.total_shots = newTotal;
     session.successful_shots = (session.successful_shots || 0) + (wasSuccessful ? 1 : 0);
@@ -177,6 +182,7 @@ class SessionService {
     // Running average: new_avg = (old_avg * old_count + new_value) / new_count
     session.average_accuracy_percent = (oldAvgAccuracy * oldTotal + newShotAccuracy) / newTotal;
     session.average_shot_velocity_kmh = (oldAvgVelocity * oldTotal + newShotVelocity) / newTotal;
+    session.average_score = (oldAvgScore * oldTotal + newShotScore) / newTotal;
 
     return await this.sessionRepository.save(session);
   }

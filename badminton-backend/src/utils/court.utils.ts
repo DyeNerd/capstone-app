@@ -55,3 +55,14 @@ export const isPointInBox = (
   return point.x >= minX && point.x <= maxX && point.y >= minY && point.y <= maxY;
 };
 
+/**
+ * Calculate shot score (0–100)
+ * 100 = perfect landing at target center (0cm)
+ * Scores decrease with distance: score = max(0, 100 - accuracyCm)
+ * In-box shots are guaranteed a minimum of 75
+ */
+export const calculateScore = (accuracyCm: number, inBox: boolean | null | undefined): number => {
+  const rawScore = Math.max(0, 100 - accuracyCm);
+  return inBox === true ? Math.max(75, rawScore) : rawScore;
+};
+

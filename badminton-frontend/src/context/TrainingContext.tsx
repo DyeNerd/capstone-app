@@ -99,6 +99,7 @@ export const TrainingProvider: React.FC<TrainingProviderProps> = ({ children }) 
           successful_shots: stats.successful_shots || currentSession.successful_shots,
           average_accuracy_percent: stats.average_accuracy_percent,
           average_shot_velocity_kmh: stats.average_shot_velocity_kmh,
+          average_score: stats.average_score,
         });
       }
     });

@@ -56,6 +56,9 @@ export class Shot {
   @Column({ type: 'integer', nullable: true })
   target_position_index?: number;  // Which position in cycle (0, 1, 2...)
 
+  @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
+  score?: number;  // Shot score (0-100): 100 = perfect, min 75 when in_box=true
+
   @CreateDateColumn()
   created_at!: Date;
 }

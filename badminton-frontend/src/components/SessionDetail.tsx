@@ -203,7 +203,7 @@ const SessionDetail: React.FC = () => {
             Session Statistics
           </Typography>
 
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(5, 1fr)' }, gap: 3 }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(6, 1fr)' }, gap: 3 }}>
             <Box textAlign="center">
               <Typography variant="h5" color="primary">
                 {session.total_shots}
@@ -253,6 +253,17 @@ const SessionDetail: React.FC = () => {
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 Avg Velocity
+              </Typography>
+            </Box>
+
+            <Box textAlign="center">
+              <Typography variant="h5" color="primary.main">
+                {session.average_score !== null && session.average_score !== undefined
+                  ? Number(session.average_score).toFixed(1)
+                  : '-'}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Avg Score
               </Typography>
             </Box>
           </Box>
@@ -344,6 +355,12 @@ const SessionDetail: React.FC = () => {
                   <Typography variant="body2">
                     <strong>Success:</strong> {session.shots[selectedShotIndex].was_successful ? '✅ Yes' : '❌ No'}
                   </Typography>
+                  <Typography variant="body2">
+                    <strong>Score:</strong>{' '}
+                    {session.shots[selectedShotIndex].score !== undefined && session.shots[selectedShotIndex].score !== null
+                      ? `${Number(session.shots[selectedShotIndex].score).toFixed(0)} / 100`
+                      : '-'}
+                  </Typography>
                 </Box>
               </Box>
             </CardContent>
@@ -369,6 +386,7 @@ const SessionDetail: React.FC = () => {
                       <TableCell>Landing (x, y)</TableCell>
                       <TableCell align="center">Accuracy</TableCell>
                       <TableCell align="center">Velocity</TableCell>
+                      <TableCell align="center">Score</TableCell>
                       <TableCell align="center">Success</TableCell>
                     </TableRow>
                   </TableHead>
@@ -412,6 +430,15 @@ const SessionDetail: React.FC = () => {
                         </TableCell>
                         <TableCell align="center">
                           {shot.velocity_kmh ? `${Number(shot.velocity_kmh).toFixed(1)} km/h` : '-'}
+                        </TableCell>
+                        <TableCell align="center">
+                          {shot.score !== undefined && shot.score !== null ? (
+                            <Chip
+                              label={Number(shot.score).toFixed(0)}
+                              size="small"
+                              color={Number(shot.score) >= 90 ? 'success' : Number(shot.score) >= 75 ? 'warning' : 'error'}
+                            />
+                          ) : '-'}
                         </TableCell>
                         <TableCell align="center">
                           <Chip

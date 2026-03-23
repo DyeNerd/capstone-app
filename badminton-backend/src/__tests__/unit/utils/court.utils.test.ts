@@ -3,6 +3,7 @@ import {
   determineCourtZone,
   calculateAccuracyPercent,
   isPointInBox,
+  calculateScore,
 } from '../../../utils/court.utils';
 
 describe('Court Utilities', () => {
@@ -253,6 +254,46 @@ describe('Court Utilities', () => {
 
     it('should never return negative percentage', () => {
       expect(calculateAccuracyPercent(500)).toBe(0);
+    });
+  });
+
+  describe('calculateScore', () => {
+    it('should return 100 for perfect landing (0cm)', () => {
+      expect(calculateScore(0, null)).toBe(100);
+    });
+
+    it('should return 100 for perfect landing when in_box is true', () => {
+      expect(calculateScore(0, true)).toBe(100);
+    });
+
+    it('should clamp to 75 minimum when in_box is true and raw score is lower', () => {
+      expect(calculateScore(50, true)).toBe(75);   // raw = 50, clamped to 75
+      expect(calculateScore(100, true)).toBe(75);  // raw = 0, clamped to 75
+      expect(calculateScore(200, true)).toBe(75);  // raw = 0, clamped to 75
+    });
+
+    it('should not clamp when in_box is false', () => {
+      expect(calculateScore(50, false)).toBe(50);
+      expect(calculateScore(100, false)).toBe(0);
+    });
+
+    it('should not clamp when in_box is null', () => {
+      expect(calculateScore(50, null)).toBe(50);
+      expect(calculateScore(100, null)).toBe(0);
+    });
+
+    it('should not clamp when in_box is undefined', () => {
+      expect(calculateScore(50, undefined)).toBe(50);
+    });
+
+    it('should return 75 (no clamp needed) when raw score equals 75', () => {
+      expect(calculateScore(25, true)).toBe(75);   // raw = 75, no clamping needed
+      expect(calculateScore(25, false)).toBe(75);  // same without template
+    });
+
+    it('should never return negative score', () => {
+      expect(calculateScore(500, false)).toBe(0);
+      expect(calculateScore(500, null)).toBe(0);
     });
   });
 });

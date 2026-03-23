@@ -19,6 +19,7 @@ interface CreateShotData {
   courtZone: CourtZone;
   inBox?: boolean; // Was landing inside target box?
   targetPositionIndex?: number; // Which position in cycle (0, 1, 2...)
+  score?: number; // Shot score (0-100)
 }
 
 class ShotService {
@@ -48,6 +49,7 @@ class ShotService {
       court_zone: data.courtZone,
       in_box: data.inBox,
       target_position_index: data.targetPositionIndex,
+      score: data.score,
     });
 
     return await this.shotRepository.save(shot);

@@ -251,9 +251,9 @@ describe('SessionService', () => {
   describe('updateSessionStats', () => {
     it('should calculate and update session stats from shots', async () => {
       const mockShots = [
-        { accuracy_percent: 80, velocity_kmh: 120, was_successful: true },
-        { accuracy_percent: 90, velocity_kmh: 130, was_successful: true },
-        { accuracy_percent: 70, velocity_kmh: 110, was_successful: false },
+        { accuracy_percent: 80, velocity_kmh: 120, was_successful: true, score: 70 },
+        { accuracy_percent: 90, velocity_kmh: 130, was_successful: true, score: 90 },
+        { accuracy_percent: 70, velocity_kmh: 110, was_successful: false, score: 50 },
       ];
 
       const mockSession = {
@@ -270,6 +270,7 @@ describe('SessionService', () => {
       expect(result.successful_shots).toBe(2);
       expect(result.average_accuracy_percent).toBe(80); // (80+90+70)/3
       expect(result.average_shot_velocity_kmh).toBe(120); // (120+130+110)/3
+      expect(result.average_score).toBeCloseTo(70, 1); // (70+90+50)/3
     });
 
     it('should handle session with no shots', async () => {
@@ -295,12 +296,13 @@ describe('SessionService', () => {
         successful_shots: 1,
         average_accuracy_percent: 75,
         average_shot_velocity_kmh: 100,
+        average_score: 70,
       };
 
       mockSessionRepository.findOne.mockResolvedValue(mockSession as TrainingSession);
       mockSessionRepository.save.mockImplementation((session) => Promise.resolve(session));
 
-      const result = await sessionService.incrementalUpdateStats('session-123', 90, 120, true);
+      const result = await sessionService.incrementalUpdateStats('session-123', 90, 120, true, 80);
 
       expect(result.total_shots).toBe(3);
       expect(result.successful_shots).toBe(2);
@@ -308,6 +310,8 @@ describe('SessionService', () => {
       expect(result.average_accuracy_percent).toBe(80);
       // New avg velocity: (100*2 + 120) / 3 = 106.666...
       expect(result.average_shot_velocity_kmh).toBeCloseTo(106.67, 1);
+      // New avg score: (70*2 + 80) / 3 = 73.333...
+      expect(result.average_score).toBeCloseTo(73.33, 1);
     });
 
     it('should handle first shot in session', async () => {
@@ -317,17 +321,19 @@ describe('SessionService', () => {
         successful_shots: 0,
         average_accuracy_percent: 0,
         average_shot_velocity_kmh: 0,
+        average_score: 0,
       };
 
       mockSessionRepository.findOne.mockResolvedValue(mockSession as TrainingSession);
       mockSessionRepository.save.mockImplementation((session) => Promise.resolve(session));
 
-      const result = await sessionService.incrementalUpdateStats('session-123', 85, 115, true);
+      const result = await sessionService.incrementalUpdateStats('session-123', 85, 115, true, 90);
 
       expect(result.total_shots).toBe(1);
       expect(result.successful_shots).toBe(1);
       expect(result.average_accuracy_percent).toBe(85);
       expect(result.average_shot_velocity_kmh).toBe(115);
+      expect(result.average_score).toBe(90);
     });
 
     it('should handle unsuccessful shot', async () => {
@@ -337,17 +343,19 @@ describe('SessionService', () => {
         successful_shots: 1,
         average_accuracy_percent: 80,
         average_shot_velocity_kmh: 120,
+        average_score: 75,
       };
 
       mockSessionRepository.findOne.mockResolvedValue(mockSession as TrainingSession);
       mockSessionRepository.save.mockImplementation((session) => Promise.resolve(session));
 
-      const result = await sessionService.incrementalUpdateStats('session-123', 60, 90, false);
+      const result = await sessionService.incrementalUpdateStats('session-123', 60, 90, false, 40);
 
       expect(result.total_shots).toBe(2);
       expect(result.successful_shots).toBe(1); // No increment for unsuccessful
       expect(result.average_accuracy_percent).toBe(70); // (80*1 + 60) / 2
       expect(result.average_shot_velocity_kmh).toBe(105); // (120*1 + 90) / 2
+      expect(result.average_score).toBeCloseTo(57.5, 1); // (75*1 + 40) / 2
     });
   });
 
