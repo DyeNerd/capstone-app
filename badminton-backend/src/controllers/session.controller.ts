@@ -37,8 +37,6 @@ export class SessionController {
       // Send signal to CV component via broker
       await brokerService.publishSessionStart({
         sessionId: session.id,
-        athleteId,
-        targetZone,
         timestamp: new Date().toISOString(),
       });
 

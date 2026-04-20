@@ -19,8 +19,6 @@ export interface ShotDataFromCV {
 
 export interface SessionStartEvent {
   sessionId: string;
-  athleteId: string;
-  targetZone?: string;
   timestamp: string;
 }
 
