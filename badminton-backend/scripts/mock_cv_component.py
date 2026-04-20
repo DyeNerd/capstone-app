@@ -19,6 +19,26 @@ Examples:
   python mock_cv_component.py abc123                                       # Legacy: 10 shots, 3s interval
   python mock_cv_component.py abc123 --count 50 --interval-ms 50           # Legacy: 50 shots, 50ms
   python mock_cv_component.py abc123 --count 50 --template template-001    # Legacy: 50 shots, 100% accurate
+
+RabbitMQ message types: (from badminton-backend/src/types/index.ts)
+export interface ShotDataFromCV {
+  sessionId: string;
+  shotNumber: number;
+  timestamp: string;
+  landingPosition: { x: number; y: number }; // In cm (half-court: 0-610 x 0-670)
+  velocity?: number;
+  detectionConfidence?: number;
+}
+
+export interface SessionStartEvent {
+  sessionId: string;
+  timestamp: string;
+}
+
+export interface SessionStopEvent {
+  sessionId: string;
+  timestamp: string;
+}
 """
 
 import pika
