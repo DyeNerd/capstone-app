@@ -36,6 +36,14 @@ export function isLatencyLoggingEnabled(): boolean {
   return ENABLED;
 }
 
+export function logLatencyStatus(): void {
+  if (ENABLED) {
+    console.log(`[LAT] backend latency logging ENABLED — writing to ${CSV_PATH}`);
+  } else {
+    console.log('[LAT] backend latency logging disabled (set LATENCY_LOG=true to enable)');
+  }
+}
+
 export function logShotLatency(row: ShotLatencyRow): void {
   if (!ENABLED) return;
   ensureHeader();

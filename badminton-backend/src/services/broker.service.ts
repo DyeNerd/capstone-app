@@ -6,7 +6,7 @@ import { sessionService } from './session.service';
 import { templateService } from './template.service';
 import { socketHandler } from '../websocket/socket.handler';
 import { calculateAccuracy, determineCourtZone, calculateAccuracyPercent, isPointInBox, calculateScore } from '../utils/court.utils';
-import { logShotLatency } from '../utils/latency';
+import { logShotLatency, logLatencyStatus } from '../utils/latency';
 
 class BrokerService {
   private connection: ChannelModel | null = null;
@@ -50,6 +50,7 @@ class BrokerService {
       );
 
       console.log('✅ RabbitMQ connected and configured');
+      logLatencyStatus();
 
       // Start consuming shot data
       this.consumeShotData();

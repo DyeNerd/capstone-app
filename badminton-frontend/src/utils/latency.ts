@@ -116,9 +116,14 @@ export function downloadLatencyCsv(filename = 'frontend_latency.csv'): void {
 
 // Expose on window so testers can trigger the download from DevTools without
 // shipping a UI. No-op when logging is disabled.
-if (ENABLED && typeof window !== 'undefined') {
-  (window as unknown as { downloadLatencyCsv: typeof downloadLatencyCsv }).downloadLatencyCsv =
-    downloadLatencyCsv;
-  // eslint-disable-next-line no-console
-  console.log('[LAT] Latency logging enabled. Run window.downloadLatencyCsv() to save CSV.');
+if (typeof window !== 'undefined') {
+  if (ENABLED) {
+    (window as unknown as { downloadLatencyCsv: typeof downloadLatencyCsv }).downloadLatencyCsv =
+      downloadLatencyCsv;
+    // eslint-disable-next-line no-console
+    console.log('[LAT] frontend latency logging ENABLED — run window.downloadLatencyCsv() to save CSV');
+  } else {
+    // eslint-disable-next-line no-console
+    console.log('[LAT] frontend latency logging disabled (set REACT_APP_LATENCY_LOG=true and rebuild to enable)');
+  }
 }
