@@ -115,12 +115,14 @@ export const TrainingProvider: React.FC<TrainingProviderProps> = ({ children }) 
           });
         });
       }
-      // Advance the "aim here next" cue locally. The backend now infers the actual
-      // target from where the shot landed, so shot.target_position_index reflects
-      // the inferred target, not the intended one — we can't use it to drive the cue.
-      const positionsLength = selectedTemplate?.positions.length ?? 0;
-      if (positionsLength > 0) {
-        setCurrentTargetIndex((prev) => (prev + 1) % positionsLength);
+      // Mirror the target the backend actually scored against, so the crosshair,
+      // target box, and "Position X / Y" chip match the scoring algorithm
+      // (nearest target) instead of a local sequential cycle.
+      if (
+        shot.target_position_index !== undefined &&
+        shot.target_position_index !== null
+      ) {
+        setCurrentTargetIndex(shot.target_position_index);
       }
     });
 
