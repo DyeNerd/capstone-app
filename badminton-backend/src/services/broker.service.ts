@@ -98,6 +98,10 @@ class BrokerService {
   private async consumeShotData() {
     if (!this.channel) return;
 
+    // Process one shot at a time: prevents concurrent incrementalUpdateStats calls
+    // from racing on the same session row (read-modify-write conflict).
+    await this.channel.prefetch(1);
+
     this.channel.consume(
       BROKER_CONFIG.queues.shotData,
       async (msg: ConsumeMessage | null) => {

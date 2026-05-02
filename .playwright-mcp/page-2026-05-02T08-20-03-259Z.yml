@@ -1,0 +1,77 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e6]:
+      - generic [ref=e7] [cursor=pointer]:
+        - img [ref=e9]
+        - paragraph [ref=e11]: SHUTTLECOACH
+      - generic [ref=e12]:
+        - button "Training" [ref=e13] [cursor=pointer]:
+          - img [ref=e15]
+          - text: Training
+        - button "Performance" [ref=e17] [cursor=pointer]:
+          - img [ref=e19]
+          - text: Performance
+        - button "Athletes" [ref=e21] [cursor=pointer]:
+          - img [ref=e23]
+          - text: Athletes
+      - button "T" [ref=e25] [cursor=pointer]:
+        - generic [ref=e26]: T
+  - generic [ref=e27]:
+    - generic [ref=e28]:
+      - generic [ref=e29]:
+        - img [ref=e30]
+        - paragraph [ref=e32]: TRAINING CONTROL
+      - paragraph [ref=e33]: Select an athlete and template to begin tracking
+    - generic [ref=e34]:
+      - generic [ref=e35]:
+        - generic [ref=e37]:
+          - generic [ref=e38]:
+            - generic [ref=e39]:
+              - img [ref=e40]
+              - paragraph [ref=e42]: Athlete Selection
+            - button "New Athlete" [ref=e43] [cursor=pointer]:
+              - img [ref=e45]
+              - text: New Athlete
+          - generic [ref=e47]:
+            - generic: Select Athlete
+            - generic [ref=e48]:
+              - combobox [ref=e49] [cursor=pointer]
+              - textbox
+              - img
+              - group
+        - generic [ref=e51]:
+          - generic [ref=e52]:
+            - img [ref=e53]
+            - paragraph [ref=e55]: Target Template
+          - generic [ref=e56]:
+            - generic: Select Template *
+            - generic [ref=e57]:
+              - combobox [ref=e58] [cursor=pointer]
+              - textbox
+              - img
+              - group
+          - alert [ref=e59]:
+            - img [ref=e61]
+            - generic [ref=e63]: Please select a target template before starting training
+      - generic [ref=e64]:
+        - generic [ref=e66]:
+          - generic [ref=e67]:
+            - img [ref=e68]
+            - paragraph [ref=e70]: Training Session
+          - generic [ref=e71]:
+            - button "START TRAINING" [disabled]:
+              - generic:
+                - img
+              - text: START TRAINING
+            - button "STOP TRAINING" [disabled]:
+              - generic:
+                - img
+              - text: STOP TRAINING
+          - alert [ref=e72]:
+            - img [ref=e74]
+            - generic [ref=e76]: Please select an athlete before starting training
+        - generic [ref=e77]:
+          - paragraph [ref=e79]: Court View
+          - generic [ref=e81]:
+            - img [ref=e83]
+            - paragraph [ref=e85]: Start a training session to see live shot tracking

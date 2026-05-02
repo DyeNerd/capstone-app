@@ -1,0 +1,19 @@
+[      71ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/static/js/bundle.js:72811
+[      76ms] [LOG] [LAT] frontend latency logging disabled (set REACT_APP_LATENCY_LOG=true and rebuild to enable) @ http://localhost:3000/static/js/bundle.js:102994
+[     104ms] [LOG] [AuthContext] checkAuth started @ http://localhost:3000/static/js/bundle.js:102071
+[     104ms] [LOG] [AuthContext] Token in localStorage: none @ http://localhost:3000/static/js/bundle.js:102074
+[     104ms] [LOG] [AuthContext] Setting isLoading to false @ http://localhost:3000/static/js/bundle.js:102091
+[     105ms] [LOG] [AuthContext] checkAuth started @ http://localhost:3000/static/js/bundle.js:102071
+[     105ms] [LOG] [AuthContext] Token in localStorage: none @ http://localhost:3000/static/js/bundle.js:102074
+[     105ms] [LOG] [AuthContext] Setting isLoading to false @ http://localhost:3000/static/js/bundle.js:102091
+[     119ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/login:0
+[   11111ms] [LOG] [Login] Form submitted {email: testcoach@test.com, password: ***} @ http://localhost:3000/static/js/bundle.js:94823
+[   11111ms] [LOG] [Login] Calling login API... @ http://localhost:3000/static/js/bundle.js:94828
+[   11111ms] [LOG] [AuthContext] login called {email: testcoach@test.com} @ http://localhost:3000/static/js/bundle.js:102096
+[   11200ms] [LOG] [AuthContext] login API result: {success: true, user: Object, token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjUyM…M5OH0.F10X-ck1IxOUHUfreFi_wJxmcI9Dtp_CMNK0ekX_ksU} @ http://localhost:3000/static/js/bundle.js:102104
+[   11200ms] [LOG] [AuthContext] Token saved, setting user: {id: 5218557c-6f2e-404d-b90b-3f333b92eba9, email: testcoach@test.com, username: testcoach, created_at: 2026-05-02T08:19:37.523Z} @ http://localhost:3000/static/js/bundle.js:102107
+[   11200ms] [LOG] [Login] Login successful, navigating to / @ http://localhost:3000/static/js/bundle.js:94830
+[   11208ms] [LOG] [ProtectedRoute] Render: {isAuthenticated: true, isLoading: false} @ http://localhost:3000/static/js/bundle.js:96169
+[   11208ms] [LOG] [ProtectedRoute] Authenticated, rendering children @ http://localhost:3000/static/js/bundle.js:96204
+[   11208ms] [LOG] [ProtectedRoute] Render: {isAuthenticated: true, isLoading: false} @ http://localhost:3000/static/js/bundle.js:96169
+[   11208ms] [LOG] [ProtectedRoute] Authenticated, rendering children @ http://localhost:3000/static/js/bundle.js:96204

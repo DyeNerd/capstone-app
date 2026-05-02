@@ -1,0 +1,1 @@
+[       1ms] [LOG] [AuthContext] getCurrentUser result: {success: true, user: Object} @ http://localhost:3000/static/js/bundle.js:102207

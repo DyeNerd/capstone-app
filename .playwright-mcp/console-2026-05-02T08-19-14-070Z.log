@@ -1,0 +1,17 @@
+[     311ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/static/js/bundle.js:72811
+[     322ms] [LOG] [LAT] frontend latency logging disabled (set REACT_APP_LATENCY_LOG=true and rebuild to enable) @ http://localhost:3000/static/js/bundle.js:102994
+[     344ms] [LOG] [ProtectedRoute] Render: {isAuthenticated: false, isLoading: true} @ http://localhost:3000/static/js/bundle.js:96169
+[     345ms] [LOG] [ProtectedRoute] Showing loading spinner @ http://localhost:3000/static/js/bundle.js:96174
+[     345ms] [LOG] [ProtectedRoute] Render: {isAuthenticated: false, isLoading: true} @ http://localhost:3000/static/js/bundle.js:96169
+[     345ms] [LOG] [ProtectedRoute] Showing loading spinner @ http://localhost:3000/static/js/bundle.js:96174
+[     357ms] [LOG] [AuthContext] checkAuth started @ http://localhost:3000/static/js/bundle.js:102071
+[     357ms] [LOG] [AuthContext] Token in localStorage: none @ http://localhost:3000/static/js/bundle.js:102074
+[     357ms] [LOG] [AuthContext] Setting isLoading to false @ http://localhost:3000/static/js/bundle.js:102091
+[     358ms] [LOG] [AuthContext] checkAuth started @ http://localhost:3000/static/js/bundle.js:102071
+[     358ms] [LOG] [AuthContext] Token in localStorage: none @ http://localhost:3000/static/js/bundle.js:102074
+[     358ms] [LOG] [AuthContext] Setting isLoading to false @ http://localhost:3000/static/js/bundle.js:102091
+[     359ms] [LOG] [ProtectedRoute] Render: {isAuthenticated: false, isLoading: false} @ http://localhost:3000/static/js/bundle.js:96169
+[     359ms] [LOG] [ProtectedRoute] Not authenticated, redirecting to /login @ http://localhost:3000/static/js/bundle.js:96194
+[     359ms] [LOG] [ProtectedRoute] Render: {isAuthenticated: false, isLoading: false} @ http://localhost:3000/static/js/bundle.js:96169
+[     359ms] [LOG] [ProtectedRoute] Not authenticated, redirecting to /login @ http://localhost:3000/static/js/bundle.js:96194
+[     481ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/login:0

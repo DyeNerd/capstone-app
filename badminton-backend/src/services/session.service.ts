@@ -61,7 +61,7 @@ class SessionService {
   async getSessionById(id: string, includeRelations: string[] = []) {
     const session = await this.sessionRepository.findOne({
       where: { id },
-      relations: includeRelations.length > 0 ? includeRelations : ['athlete', 'coach', 'shots'],
+      relations: includeRelations.length > 0 ? includeRelations : undefined,
     });
 
     if (!session) {

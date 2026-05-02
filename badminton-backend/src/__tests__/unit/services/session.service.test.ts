@@ -86,7 +86,7 @@ describe('SessionService', () => {
 
       expect(mockSessionRepository.findOne).toHaveBeenCalledWith({
         where: { id: 'session-123' },
-        relations: ['athlete', 'coach', 'shots'],
+        relations: undefined,
       });
       expect(result).toEqual(mockSession);
     });

@@ -1,0 +1,10 @@
+[      82ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/static/js/bundle.js:72811
+[      87ms] [LOG] [LAT] frontend latency logging disabled (set REACT_APP_LATENCY_LOG=true and rebuild to enable) @ http://localhost:3000/static/js/bundle.js:102994
+[     136ms] [LOG] [AuthContext] checkAuth started @ http://localhost:3000/static/js/bundle.js:102071
+[     136ms] [LOG] [AuthContext] Token in localStorage: none @ http://localhost:3000/static/js/bundle.js:102074
+[     137ms] [LOG] [AuthContext] Setting isLoading to false @ http://localhost:3000/static/js/bundle.js:102091
+[     137ms] [LOG] [AuthContext] checkAuth started @ http://localhost:3000/static/js/bundle.js:102071
+[     137ms] [LOG] [AuthContext] Token in localStorage: none @ http://localhost:3000/static/js/bundle.js:102074
+[     138ms] [LOG] [AuthContext] Setting isLoading to false @ http://localhost:3000/static/js/bundle.js:102091
+[     157ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "new-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/register:0
+[     157ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "new-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/register:0

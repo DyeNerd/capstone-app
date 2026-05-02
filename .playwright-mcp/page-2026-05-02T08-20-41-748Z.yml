@@ -1,0 +1,88 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e6]:
+      - generic [ref=e7] [cursor=pointer]:
+        - img [ref=e9]
+        - paragraph [ref=e11]: SHUTTLECOACH
+      - generic [ref=e12]:
+        - button "Training" [ref=e137] [cursor=pointer]:
+          - img [ref=e15]
+          - text: Training
+        - button "Performance" [ref=e138] [cursor=pointer]:
+          - img [ref=e19]
+          - text: Performance
+        - button "Athletes" [ref=e139] [cursor=pointer]:
+          - img [ref=e23]
+          - text: Athletes
+      - button "T" [ref=e140] [cursor=pointer]:
+        - generic [ref=e26]: T
+  - generic [ref=e27]:
+    - generic [ref=e28]:
+      - generic [ref=e29]:
+        - img [ref=e30]
+        - paragraph [ref=e32]: TRAINING CONTROL
+      - paragraph [ref=e33]: Select an athlete and template to begin tracking
+    - generic [ref=e34]:
+      - generic [ref=e35]:
+        - generic [ref=e37]:
+          - generic [ref=e38]:
+            - generic [ref=e39]:
+              - img [ref=e40]
+              - paragraph [ref=e42]: Athlete Selection
+            - button "New Athlete" [ref=e141] [cursor=pointer]:
+              - img [ref=e45]
+              - text: New Athlete
+          - generic [ref=e47]:
+            - generic [ref=e91]: Select Athlete
+            - generic [ref=e48]:
+              - combobox [ref=e49] [cursor=pointer]:
+                - generic [ref=e104]:
+                  - text: Test Athlete
+                  - generic [ref=e106]: intermediate
+              - textbox: 9500e3f1-b9df-4e11-b716-d23d405a9a94
+              - img
+              - group
+        - generic [ref=e51]:
+          - generic [ref=e52]:
+            - img [ref=e53]
+            - paragraph [ref=e55]: Target Template
+          - generic [ref=e56]:
+            - generic [ref=e117]: Select Template *
+            - generic [ref=e57]:
+              - combobox [active] [ref=e58] [cursor=pointer]:
+                - generic [ref=e142]:
+                  - paragraph [ref=e143]: template-001
+                  - generic [ref=e144]: first template • 3 positions
+              - textbox: template-001
+              - img
+              - group
+          - alert [ref=e145]:
+            - img [ref=e147]
+            - generic [ref=e149]:
+              - strong [ref=e150]: template-001
+              - text: "- first template"
+              - generic [ref=e151]: "3 target positions • Shots cycle: 1→2→3→1→2→3..."
+          - img [ref=e154]:
+            - generic [ref=e156]: NET
+            - generic [ref=e157]: Back Line (670cm)
+            - generic [ref=e161]: "1"
+            - generic [ref=e165]: "2"
+            - generic [ref=e169]: "3"
+      - generic [ref=e64]:
+        - generic [ref=e66]:
+          - generic [ref=e67]:
+            - img [ref=e68]
+            - paragraph [ref=e70]: Training Session
+          - generic [ref=e71]:
+            - button "START TRAINING" [ref=e170] [cursor=pointer]:
+              - img [ref=e172]
+              - text: START TRAINING
+            - button "STOP TRAINING" [disabled]:
+              - generic:
+                - img
+              - text: STOP TRAINING
+        - generic [ref=e77]:
+          - paragraph [ref=e79]: Court View
+          - generic [ref=e81]:
+            - img [ref=e83]
+            - paragraph [ref=e85]: Start a training session to see live shot tracking

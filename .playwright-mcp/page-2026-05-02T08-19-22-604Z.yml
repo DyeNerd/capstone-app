@@ -1,0 +1,44 @@
+- generic [ref=e8]:
+  - generic [ref=e9]:
+    - img [ref=e11]
+    - paragraph [ref=e13]: CREATE ACCOUNT
+    - paragraph [ref=e14]: Register as a coach
+  - generic [ref=e15]:
+    - generic [ref=e16]:
+      - generic [ref=e17]:
+        - text: Username
+        - generic [ref=e18]: "*"
+      - generic [ref=e19]:
+        - textbox "Username" [active] [ref=e20]
+        - group:
+          - generic: Username *
+    - generic [ref=e21]:
+      - generic:
+        - text: Email
+        - generic: "*"
+      - generic [ref=e22]:
+        - textbox "Email" [ref=e23]
+        - group:
+          - generic: Email *
+    - generic [ref=e24]:
+      - generic:
+        - text: Password
+        - generic: "*"
+      - generic [ref=e25]:
+        - textbox "Password" [ref=e26]
+        - group:
+          - generic: Password *
+      - paragraph [ref=e27]: Minimum 8 characters
+    - generic [ref=e28]:
+      - generic:
+        - text: Confirm Password
+        - generic: "*"
+      - generic [ref=e29]:
+        - textbox "Confirm Password" [ref=e30]
+        - group:
+          - generic: Confirm Password *
+    - button "CREATE ACCOUNT" [ref=e31] [cursor=pointer]
+    - paragraph [ref=e33]:
+      - text: Already have an account?
+      - link "Sign in here" [ref=e34] [cursor=pointer]:
+        - /url: /login
